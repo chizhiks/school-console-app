@@ -4,7 +4,12 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
-public class UserInterface {
+import ua.foxminded.chyzhov.schoolconsoleapp.database.DatabaseFacade;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.courses.CourseService;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups.GroupService;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.students.StudentService;
+
+public class UserInputService {
 
 	public static void start() {
 
@@ -43,14 +48,14 @@ public class UserInterface {
 					DatabaseFacade.getAllTables();
 					break;
 				case 4:
-					List<String> results = DatabaseFacade.getStudents();
+					List<String> results = StudentService.getStudents();
 
 					for (String result : results) {
 						System.out.println(result);
 					}
 					break;
 				case 5:
-					results = DatabaseFacade.getGroups();
+					results = GroupService.getGroups();
 
 					for (String result : results) {
 						System.out.println(result);
@@ -58,7 +63,7 @@ public class UserInterface {
 
 					break;
 				case 6:
-					results = DatabaseFacade.getCourses();
+					results = CourseService.getCourses();
 
 					for (String result : results) {
 						System.out.println(result);
@@ -69,7 +74,7 @@ public class UserInterface {
 					System.out.printf("Enter max student count: ");
 					int maxCount = sc.nextInt();
 					sc.nextLine();
-					results = DatabaseFacade.getGroupsWithLimitStudents(maxCount);
+					results = GroupService.getGroupsWithLimitStudents(maxCount);
 
 					for (String result : results) {
 						System.out.println(result);
@@ -79,7 +84,7 @@ public class UserInterface {
 				case 8:
 					System.out.printf("\nTo search for students, enter the name of the course: ");
 					String courseName = sc.nextLine();
-					results = DatabaseFacade.getStudentsByCourse(courseName);
+					results = StudentService.getStudentsByCourse(courseName);
 
 					for (String result : results) {
 						System.out.println(result);
@@ -109,7 +114,7 @@ public class UserInterface {
 					System.out.printf("Enter the last name: ");
 					String lastName = sc.nextLine();
 
-					DatabaseFacade.addStudent(group_id, firstName, lastName);
+					StudentService.addStudent(group_id, firstName, lastName);
 					break;
 				case 10:
 					int student_id;
@@ -127,7 +132,7 @@ public class UserInterface {
 						}
 					}
 
-					DatabaseFacade.deleteStudent(student_id);
+					StudentService.deleteStudent(student_id);
 					break;
 				case 11:
 					int course_id;
@@ -154,7 +159,7 @@ public class UserInterface {
 						}
 					}
 
-					DatabaseFacade.addStudentToCourse(student_id, course_id);
+					StudentService.addStudentToCourse(student_id, course_id);
 					break;
 				case 12:
 					maxStudentID = DatabaseFacade.getMaxRowsInTableAmount("students");
@@ -180,7 +185,7 @@ public class UserInterface {
 						}
 					}
 
-					DatabaseFacade.removeStudentFromCourse(student_id, course_id);
+					StudentService.removeStudentFromCourse(student_id, course_id);
 					break;
 				case 13:
 					System.out.println("\nExiting...");

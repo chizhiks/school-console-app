@@ -1,18 +1,25 @@
 package ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.courses;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.database.DbConnection;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
 
-public class CourseService {
+import ua.foxminded.chyzhov.schoolconsoleapp.DAO.CourseDao;
 
-	public static void generateCourses() {
+@Service
+public class CourseService implements CourseDao {
+
+	private final JdbcTemplate jdbc;
+
+	public CourseService(JdbcTemplate jdbc) {
+		this.jdbc = jdbc;
+	}
+
+	@Override
+	public void generateCourses() {
 		String[] courses = { "Mathematics", "Biology", "Chemistry", "Physics", "Computer Science", "History",
 				"Geography", "Literature", "Philosophy", "Art" };
 
@@ -22,63 +29,51 @@ public class CourseService {
 
 	}
 
-	public static void addCourse(String course_name, String course_description) {
-		String sql = "INSERT INTO school.courses(course_name, course_description) values (?, ?)";
+	@Override
+	public void addCourse(String course_name, String course_description) {
 
-		try (Connection connection = DbConnection.getInstance();
-				PreparedStatement statement = connection.prepareStatement(sql)) {
+		jdbc.update("INSERT INTO school.courses(course_name, course_description) VALUES (?, ?)", course_name,
+				course_description);
 
-			statement.setString(1, course_name);
-			statement.setString(2, course_description);
-
-			statement.executeUpdate();
-
-		} catch (SQLException e) {
-			System.out.println("Failed to add course.");
-			e.printStackTrace();
-		}
 	}
 
-	public static List<String> getCourses() {
+	@Override
+	public List<String> getCourses() {
 
-		List<String> result = new ArrayList<String>();
+		String sql = "SELECT * FROM school.courses";
 
-		String query = "SELECT * FROM school.courses";
+		List<Map<String, Object>> rows = jdbc.queryForList(sql);
 
 		int maxCourseNameLength = 0;
 		int maxCourseDescLength = 0;
 
-		try (Connection connection = DbConnection.getInstance();
-				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-						ResultSet.CONCUR_READ_ONLY);
-				ResultSet resultSet = statement.executeQuery(query);) {
+		for (Map<String, Object> row : rows) {
+			String courseName = (String) row.get("course_name");
+			String courseDesc = (String) row.get("course_description");
 
-			result.add("\nList of courses in the database:\n");
-
-			while (resultSet.next()) {
-				maxCourseNameLength = Math.max(maxCourseNameLength, resultSet.getString("course_name").length());
-				maxCourseDescLength = Math.max(maxCourseDescLength, resultSet.getString("course_description").length());
+			if (courseName.length() > maxCourseNameLength) {
+				maxCourseNameLength = courseName.length();
 			}
 
-			maxCourseNameLength += 2;
-			maxCourseDescLength += 2;
-
-			resultSet.beforeFirst();
-
-			while (resultSet.next()) {
-
-				String courseInfo = String.format(
-						"ID: %-5d Course Name: %-" + maxCourseNameLength + "s Course Description: %-"
-								+ maxCourseDescLength + "s",
-						resultSet.getInt("course_id"), resultSet.getString("course_name"),
-						resultSet.getString("course_description"));
-
-				result.add(courseInfo);
+			if (courseDesc.length() > maxCourseDescLength) {
+				maxCourseDescLength = courseDesc.length();
 			}
 
-		} catch (SQLException e) {
-			System.out.println("Failed to get course data.");
-			e.printStackTrace();
+		}
+
+		maxCourseNameLength += 2;
+		maxCourseDescLength += 2;
+
+		List<String> result = new ArrayList<String>();
+
+		result.add("\nList of courses in the database:\n");
+
+		for (Map<String, Object> row : rows) {
+			String courseInfo = String.format("ID: %-5d Course Name: %-" + maxCourseNameLength
+					+ "s Course Description: %-" + maxCourseDescLength + "s", row.get("course_id"),
+					row.get("course_name"), row.get("course_description"));
+
+			result.add(courseInfo);
 		}
 
 		return result;

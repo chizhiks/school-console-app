@@ -1,19 +1,26 @@
 package ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
 
 import ua.foxminded.chyzhov.schoolconsoleapp.Randomizer;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.DbConnection;
+import ua.foxminded.chyzhov.schoolconsoleapp.DAO.GroupDao;
 
-public class GroupService {
+@Service
+public class GroupService implements GroupDao {
 
-	public static void generateGroups() {
+	private final JdbcTemplate jdbc;
+
+	public GroupService(JdbcTemplate jdbc) {
+		this.jdbc = jdbc;
+	}
+
+	@Override
+	public void generateGroups() {
 
 		Randomizer randomizer = new Randomizer();
 
@@ -22,79 +29,44 @@ public class GroupService {
 		}
 	}
 
-	public static void addGroup(String group_name) {
+	@Override
+	public void addGroup(String group_name) {
 		String sql = "INSERT INTO school.groups(group_name) values (?)";
 
-		try (Connection connection = DbConnection.getInstance();
-				PreparedStatement statement = connection.prepareStatement(sql)) {
+		jdbc.update(sql, group_name);
 
-			statement.setString(1, group_name);
-
-			statement.executeUpdate();
-
-		} catch (SQLException e) {
-			System.out.println("Failed to add group.");
-			e.printStackTrace();
-		}
 	}
 
-	public static List<String> getGroups() {
+	@Override
+	public List<String> getGroups() {
+
+		List<Map<String, Object>> rows = jdbc.queryForList("SELECT * FROM school.groups");
 
 		List<String> result = new ArrayList<String>();
 
-		String query = "SELECT * FROM school.groups";
+		result.add("\nList of groups in the database:\n");
 
-		try (Connection connection = DbConnection.getInstance();
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query);) {
+		for (Map<String, Object> row : rows) {
 
-			result.add("\nList of groups in the database:\n");
+			String groupInfo = String.format("ID: %-5d | Group Name: %-7s", row.get("group_id"), row.get("group_name"));
 
-			while (resultSet.next()) {
+			result.add(groupInfo);
 
-				String groupInfo = String.format("ID: %-5d Group Name: %-7s", resultSet.getInt("group_id"),
-						resultSet.getString("group_name"));
-
-				result.add(groupInfo);
-			}
-
-		} catch (SQLException e) {
-			System.out.println("Failed to get groups data.");
-			e.printStackTrace();
 		}
 
 		return result;
+
 	}
 
-	public static List<String> getGroupsWithLimitStudents(int limit) {
+	@Override
+	public List<String> getGroupsWithLimitStudents(int limit) {
 
-		List<String> result = new ArrayList<String>();
-
-		String query = "SELECT g.group_id, g.group_name, count(student_id) AS student_count FROM school.groups g "
+		String sql = "SELECT g.group_id, g.group_name, count(student_id) AS student_count FROM school.groups g "
 				+ "LEFT JOIN school.students s ON g.group_id = s.group_id "
 				+ "GROUP BY g.group_id, g.group_name HAVING count(student_id) <= ?";
 
-		try (Connection connection = DbConnection.getInstance();
-				PreparedStatement statement = connection.prepareStatement(query)) {
-
-			statement.setInt(1, limit);
-			ResultSet resultSet = statement.executeQuery();
-
-			result.add("\nList of groups in the database with students limit - " + limit + ":\n");
-
-			while (resultSet.next()) {
-				String groupsInfo = String.format("GroupID: %-5d Group name: %-8s Students amount: %-5d",
-						resultSet.getInt("group_id"), resultSet.getString("group_name"),
-						resultSet.getInt("student_count"));
-
-				result.add(groupsInfo);
-			}
-
-		} catch (SQLException e) {
-			System.out.println("Failed to get groups with a limited number of students.");
-			e.printStackTrace();
-		}
-
-		return result;
+		return jdbc.query(sql, new Object[] { limit },
+				(rs, rowNum) -> String.format("GroupID: %-5d Group name: %-8s Students amount: %-5d",
+						rs.getInt("group_id"), rs.getString("group_name"), rs.getInt("student_count")));
 	}
 }

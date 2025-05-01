@@ -1,19 +1,26 @@
 package ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.students;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.database.DbConnection;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
 
-public class StudentService {
+import ua.foxminded.chyzhov.schoolconsoleapp.DAO.StudentDao;
 
-	public static void generateStudents() {
+@Service
+public class StudentService implements StudentDao {
+
+	private final JdbcTemplate jdbc;
+
+	public StudentService(JdbcTemplate jdbc) {
+		this.jdbc = jdbc;
+	}
+
+	@Override
+	public void generateStudents() {
 		String[] firstNames = { "John", "Emma", "Michael", "Olivia", "Daniel", "Sophia", "David", "Ava", "James",
 				"Isabella", "William", "Mia", "Alexander", "Charlotte", "Ethan", "Amelia", "Benjamin", "Harper",
 				"Henry", "Evelyn" };
@@ -26,307 +33,184 @@ public class StudentService {
 
 		Random random = new Random();
 
-		try (Connection connection = DbConnection.getInstance()) {
+		for (int i = 0; i < 200; i++) {
 
-			try (PreparedStatement statement = connection.prepareStatement(sql)) {
-				for (int i = 0; i < 200; i++) {
+			String firstName = firstNames[random.nextInt(firstNames.length)];
+			String lastName = lastNames[random.nextInt(lastNames.length)];
 
-					String firstName = firstNames[random.nextInt(firstNames.length)];
-					String lastName = lastNames[random.nextInt(lastNames.length)];
-
-					statement.setString(1, firstName);
-					statement.setString(2, lastName);
-					statement.executeUpdate();
-				}
-			}
-
-		} catch (SQLException e) {
-			System.out.println("Failed to generate 200 students.");
-			e.printStackTrace();
+			jdbc.update(sql, firstName, lastName);
 		}
 	}
 
-	public static void addStudent(int group_id, String first_name, String last_name) {
+	@Override
+	public void addStudent(int group_id, String first_name, String last_name) {
 
 		String sql = "INSERT INTO school.students(group_id, first_name, last_name) values (?, ?, ?)";
 
-		try (Connection connection = DbConnection.getInstance();
-				PreparedStatement statement = connection.prepareStatement(sql)) {
-
-			statement.setInt(1, group_id);
-			statement.setString(2, first_name);
-			statement.setString(3, last_name);
-
-			statement.executeUpdate();
-
-			System.out.println("Student has been added successfully.");
-
-		} catch (SQLException e) {
-			System.out.println("Failed to add student.");
-			e.printStackTrace();
-		}
+		jdbc.update(sql, group_id, first_name, last_name);
 	}
 
-	public static void assignStudentsToGroups() {
+	@Override
+	public void assignStudentsToGroups() {
 		Random random = new Random();
 
-		try (Connection connection = DbConnection.getInstance(); Statement statement = connection.createStatement()) {
+		List<Integer> groupIDs = jdbc.queryForList("SELECT group_id FROM school.groups", Integer.class);
 
-			ResultSet groupResultSet = statement.executeQuery("SELECT group_id FROM school.groups");
-			List<Integer> groupIDs = new ArrayList<>();
-			while (groupResultSet.next()) {
-				groupIDs.add(groupResultSet.getInt("group_id"));
+		List<Integer> studentIDs = jdbc.queryForList("SELECT student_id FROM school.students WHERE group_id IS NULL",
+				Integer.class);
+
+		for (int groupID : groupIDs) {
+			int studentsInGroup = random.nextInt(21) + 10;
+
+			for (int i = 0; i < studentsInGroup && !studentIDs.isEmpty(); i++) {
+				int index = random.nextInt(studentIDs.size());
+				int studentID = studentIDs.remove(index);
+
+				jdbc.update("UPDATE school.students SET group_id = ? WHERE student_id = ?", groupID, studentID);
 			}
-
-			ResultSet studentResultSet = statement
-					.executeQuery("SELECT student_id FROM school.students WHERE group_id IS NULL");
-			List<Integer> studentIDs = new ArrayList<>();
-			while (studentResultSet.next()) {
-				studentIDs.add(studentResultSet.getInt("student_id"));
-			}
-
-			PreparedStatement update = connection
-					.prepareStatement("UPDATE school.students SET group_id = ? WHERE student_id = ?");
-
-			for (int groupID : groupIDs) {
-				int studentsInGroup = random.nextInt(21) + 10;
-
-				for (int i = 0; i < studentsInGroup && !studentIDs.isEmpty(); i++) {
-					int index = random.nextInt(studentIDs.size());
-					int studentID = studentIDs.remove(index);
-
-					update.setInt(1, groupID);
-					update.setInt(2, studentID);
-					update.executeUpdate();
-				}
-			}
-
-		} catch (SQLException e) {
-			System.out.println("Failed to assign students to groups.");
-			e.printStackTrace();
 		}
 
 	}
 
-	public static void assignStudentsToCourses() {
+	@Override
+	public void assignStudentsToCourses() {
 		Random random = new Random();
 
-		try (Connection connection = DbConnection.getInstance(); Statement statement = connection.createStatement()) {
+		List<Integer> studentIDs = jdbc.queryForList("SELECT student_id FROM school.students", Integer.class);
 
-			ResultSet studentResultSet = statement.executeQuery("SELECT student_id FROM school.students");
-			List<Integer> studentIDs = new ArrayList<>();
-			while (studentResultSet.next()) {
-				studentIDs.add(studentResultSet.getInt("student_id"));
+		List<Integer> courseIDs = jdbc.queryForList("SELECT course_id FROM school.courses", Integer.class);
+
+		for (int studentID : studentIDs) {
+			int numCourses = random.nextInt(3) + 1;
+			List<Integer> selectedCourses = new ArrayList<>(courseIDs);
+
+			for (int i = 0; i < numCourses && !selectedCourses.isEmpty(); i++) {
+				int courseIndex = random.nextInt(selectedCourses.size());
+				int courseID = selectedCourses.remove(courseIndex);
+
+				jdbc.update("INSERT INTO school.students_courses(student_id, course_id) VALUES (?, ?)", studentID,
+						courseID);
 			}
-
-			ResultSet courseResultSet = statement.executeQuery("SELECT course_id FROM school.courses");
-			List<Integer> courseIDs = new ArrayList<>();
-			while (courseResultSet.next()) {
-				courseIDs.add(courseResultSet.getInt("course_id"));
-			}
-
-			PreparedStatement insert = connection
-					.prepareStatement("INSERT INTO school.students_courses(student_id, course_id) VALUES (?, ?)");
-
-			for (int studentID : studentIDs) {
-				int numCourses = random.nextInt(3) + 1;
-				List<Integer> selectedCourses = new ArrayList<>(courseIDs);
-
-				for (int i = 0; i < numCourses && !selectedCourses.isEmpty(); i++) {
-					int courseIndex = random.nextInt(selectedCourses.size());
-					int courseID = selectedCourses.remove(courseIndex);
-
-					insert.setInt(1, studentID);
-					insert.setInt(2, courseID);
-					insert.executeUpdate();
-				}
-			}
-
-		} catch (SQLException e) {
-			System.out.println("Failed to assign students to courses.");
-			e.printStackTrace();
 		}
 
 	}
 
-	public static List<String> getStudents() {
+	@Override
+	public List<String> getStudents() {
 
-		List<String> result = new ArrayList<String>();
+		List<Map<String, Object>> rows = jdbc.queryForList("SELECT * FROM school.students");
 
 		int maxFirstNameLength = 0;
 		int maxLastNameLength = 0;
 
-		String query = "SELECT * FROM school.students";
+		for (Map<String, Object> row : rows) {
+			String firstName = (String) row.get("first_name");
+			String lastName = (String) row.get("last_name");
 
-		try (Connection connection = DbConnection.getInstance();
-				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-						ResultSet.CONCUR_READ_ONLY);
-				ResultSet resultSet = statement.executeQuery(query);) {
-
-			while (resultSet.next()) {
-				maxFirstNameLength = Math.max(maxFirstNameLength, resultSet.getString("first_name").length());
-				maxLastNameLength = Math.max(maxLastNameLength, resultSet.getString("last_name").length());
+			if (firstName.length() > maxFirstNameLength) {
+				maxFirstNameLength = firstName.length();
 			}
 
-			maxFirstNameLength += 2;
-			maxLastNameLength += 2;
-
-			resultSet.beforeFirst();
-
-			result.add("\nList of students in the database:\n");
-
-			while (resultSet.next()) {
-
-				String studentInfo = String.format(
-						"ID: %-5d Group: %-5d First Name: %-" + maxFirstNameLength + "s Last Name: %-"
-								+ maxLastNameLength + "s",
-						resultSet.getInt("student_id"), resultSet.getInt("group_id"), resultSet.getString("first_name"),
-						resultSet.getString("last_name"));
-
-				result.add(studentInfo);
+			if (lastName.length() > maxLastNameLength) {
+				maxLastNameLength = lastName.length();
 			}
+		}
 
-		} catch (SQLException e) {
-			System.out.println("Failed to get students data.");
-			e.printStackTrace();
+		maxFirstNameLength += 2;
+		maxLastNameLength += 2;
+
+		List<String> result = new ArrayList<>();
+
+		result.add("\nList of students in the database:\n");
+
+		for (Map<String, Object> row : rows) {
+
+			String studentInfo = String.format(
+					"ID: %-5d | First Name: %-" + maxFirstNameLength + "s | Last Name: %-" + maxLastNameLength + "s",
+					row.get("student_id"), row.get("first_name"), row.get("last_name"));
+
+			result.add(studentInfo);
 		}
 
 		return result;
 	}
 
-	public static List<String> getStudentsWithCourses() {
+	@Override
+	public List<String> getStudentsWithCourses() {
 
-		List<String> result = new ArrayList<String>();
+		return jdbc.query("SELECT * FROM school.students_courses", (rs, rowNum) -> String
+				.format("StudentID: %-5d | CourseID: %-5d", rs.getInt("student_id"), rs.getInt("course_id")));
 
-		String query = "SELECT * FROM school.students_courses";
-
-		try (Connection connection = DbConnection.getInstance();
-				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
-						ResultSet.CONCUR_READ_ONLY);
-				ResultSet resultSet = statement.executeQuery(query);) {
-
-			resultSet.beforeFirst();
-
-			result.add("\nList of students with theirs courses in the database:\n");
-
-			while (resultSet.next()) {
-
-				String studentCourseInfo = String.format("StudentID: %-5d CourseID: %-5d",
-						resultSet.getInt("student_id"), resultSet.getInt("course_id"));
-
-				result.add(studentCourseInfo);
-			}
-
-		} catch (SQLException e) {
-			System.out.println("Failed to get student-course data.");
-			e.printStackTrace();
-		}
-
-		return result;
 	}
 
-	public static List<String> getStudentsByCourse(String courseName) {
+	@Override
+	public List<String> getStudentsByCourse(String courseName) {
 
-		List<String> result = new ArrayList<String>();
+		String sql = """
+				SELECT s.student_id, s.first_name, s.last_name
+				FROM school.students s
+				JOIN school.students_courses sc ON s.student_id = sc.student_id
+				JOIN school.courses c ON sc.course_id = c.course_id
+				WHERE c.course_name = ?
+				""";
 
-		String query = "SELECT s.student_id, s.first_name, s.last_name " + "FROM school.students s "
-				+ "JOIN school.students_courses sc ON s.student_id = sc.student_id "
-				+ "JOIN school.courses c ON sc.course_id = c.course_id " + "WHERE c.course_name = ?";
+		List<Map<String, Object>> rows = jdbc.queryForList(sql, courseName);
 
 		int maxFirstNameLength = 0;
 		int maxLastNameLength = 0;
 
-		try (Connection connection = DbConnection.getInstance();
-				PreparedStatement statement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE,
-						ResultSet.CONCUR_READ_ONLY)) {
+		for (Map<String, Object> row : rows) {
+			String firstName = (String) row.get("first_name");
+			String lastName = (String) row.get("last_name");
 
-			statement.setString(1, courseName);
-			ResultSet resultSet = statement.executeQuery();
-
-			while (resultSet.next()) {
-				maxFirstNameLength = Math.max(maxFirstNameLength, resultSet.getString("first_name").length());
-				maxLastNameLength = Math.max(maxLastNameLength, resultSet.getString("last_name").length());
+			if (firstName.length() > maxFirstNameLength) {
+				maxFirstNameLength = firstName.length();
 			}
 
-			maxFirstNameLength += 2;
-			maxLastNameLength += 2;
-
-			resultSet.beforeFirst();
-
-			result.add("\nList of students in the course '" + courseName + "':\n");
-
-			while (resultSet.next()) {
-
-				String studentInfo = String.format(
-						"ID: %-5d First Name: %-" + maxFirstNameLength + "s Last Name: %-" + maxLastNameLength + "s",
-						resultSet.getInt("student_id"), resultSet.getString("first_name"),
-						resultSet.getString("last_name"));
-
-				result.add(studentInfo);
+			if (lastName.length() > maxLastNameLength) {
+				maxLastNameLength = lastName.length();
 			}
+		}
 
-		} catch (SQLException e) {
-			System.out.println("Failed to get students by course's name.");
-			e.printStackTrace();
+		maxFirstNameLength += 2;
+		maxLastNameLength += 2;
+
+		List<String> result = new ArrayList<>();
+
+		result.add("\nList of students in the course '" + courseName + "':\n");
+
+		for (Map<String, Object> row : rows) {
+
+			String studentInfo = String.format(
+					"ID: %-5d First Name: %-" + maxFirstNameLength + "s Last Name: %-" + maxLastNameLength + "s",
+					row.get("student_id"), row.get("first_name"), row.get("last_name"));
+
+			result.add(studentInfo);
 		}
 
 		return result;
 	}
 
-	public static void deleteStudent(int student_id) {
+	@Override
+	public void deleteStudent(int student_id) {
 
-		String query = "DELETE FROM school.students WHERE student_id = ?";
+		jdbc.update("DELETE FROM school.students_courses WHERE student_id = ?", student_id);
+		jdbc.update("DELETE FROM school.students WHERE student_id = ?", student_id);
 
-		try (Connection connection = DbConnection.getInstance();
-				PreparedStatement statement = connection.prepareStatement(query)) {
-
-			statement.setInt(1, student_id);
-			statement.executeUpdate();
-
-			System.out.println("Student has been deleted successfully.");
-
-		} catch (SQLException e) {
-			System.out.println("Failed to delete student by student_id.");
-			e.printStackTrace();
-		}
 	}
 
-	public static void addStudentToCourse(int student_id, int course_id) {
+	@Override
+	public void addStudentToCourse(int student_id, int course_id) {
 
-		String query = "INSERT INTO school.students_courses VALUES (?, ?)";
+		jdbc.update("INSERT INTO school.students_courses VALUES (?, ?)", student_id, course_id);
 
-		try (Connection connection = DbConnection.getInstance();
-				PreparedStatement statement = connection.prepareStatement(query)) {
-
-			statement.setInt(1, student_id);
-			statement.setInt(2, course_id);
-			statement.executeUpdate();
-
-			System.out.println("Student has been added to course successfully.");
-
-		} catch (SQLException e) {
-			System.out.println("Failed to add student to course.");
-			e.printStackTrace();
-		}
 	}
 
-	public static void removeStudentFromCourse(int student_id, int course_id) {
+	@Override
+	public void removeStudentFromCourse(int student_id, int course_id) {
 
-		String query = "DELETE FROM school.students_courses WHERE student_id = ? AND course_id = ?";
+		jdbc.update("DELETE FROM school.students_courses WHERE student_id = ? AND course_id = ?", student_id,
+				course_id);
 
-		try (Connection connection = DbConnection.getInstance();
-				PreparedStatement statement = connection.prepareStatement(query)) {
-
-			statement.setInt(1, student_id);
-			statement.setInt(2, course_id);
-			statement.executeUpdate();
-
-			System.out.println("Student has been removed from course successfully.");
-
-		} catch (SQLException e) {
-			System.out.println("Failed to remove student from course.");
-			e.printStackTrace();
-		}
 	}
-
 }

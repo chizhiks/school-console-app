@@ -6,7 +6,7 @@ public interface StudentDao {
 
 	void generateStudents();
 
-	void addStudent(int group_id, String first_name, String last_name);
+	void addStudent(int groupId, String firstName, String lastName);
 
 	void assignStudentsToGroups();
 
@@ -18,9 +18,9 @@ public interface StudentDao {
 
 	List<String> getStudentsByCourse(String courseName);
 
-	void deleteStudent(int student_id);
+	void deleteStudent(int studentId);
 
-	void addStudentToCourse(int student_id, int course_id);
+	void addStudentToCourse(int studentId, int courseId);
 
-	void removeStudentFromCourse(int student_id, int course_id);
+	void removeStudentFromCourse(int studentId, int courseId);
 }

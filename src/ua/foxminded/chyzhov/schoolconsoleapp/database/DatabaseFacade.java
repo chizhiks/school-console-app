@@ -5,20 +5,20 @@ import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.courses.CourseService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups.GroupService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.students.StudentService;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.courses.CourseDaoImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups.GroupDaoImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.students.StudentDaoImpl;
 
 @Service
 public class DatabaseFacade {
 
 	private final JdbcTemplate jdbc;
-	private final GroupService groupService;
-	private final CourseService courseService;
-	private final StudentService studentService;
+	private final GroupDaoImpl groupService;
+	private final CourseDaoImpl courseService;
+	private final StudentDaoImpl studentService;
 
-	public DatabaseFacade(JdbcTemplate jdbc, GroupService groupService, CourseService courseService,
-			StudentService studentService) {
+	public DatabaseFacade(JdbcTemplate jdbc, GroupDaoImpl groupService, CourseDaoImpl courseService,
+			StudentDaoImpl studentService) {
 		this.jdbc = jdbc;
 		this.groupService = groupService;
 		this.courseService = courseService;

@@ -6,7 +6,7 @@ public interface GroupDao {
 
 	void generateGroups();
 
-	void addGroup(String group_name);
+	void addGroup(String groupName);
 
 	List<String> getGroups();
 

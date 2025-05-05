@@ -1,72 +1,33 @@
 package ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.Randomizer;
 import ua.foxminded.chyzhov.schoolconsoleapp.DAO.GroupDao;
 
 @Service
-public class GroupService implements GroupDao {
+public class GroupService {
 
-	private final JdbcTemplate jdbc;
+	private final GroupDao groupDao;
 
-	public GroupService(JdbcTemplate jdbc) {
-		this.jdbc = jdbc;
+	public GroupService(GroupDao groupDao) {
+		this.groupDao = groupDao;
 	}
 
-	@Override
 	public void generateGroups() {
-
-		Randomizer randomizer = new Randomizer();
-
-		for (int i = 0; i < 10; i++) {
-			addGroup(randomizer.getRandomGroupName());
-		}
+		groupDao.generateGroups();
 	}
 
-	@Override
-	public void addGroup(String group_name) {
-		String sql = "INSERT INTO school.groups(group_name) values (?)";
-
-		jdbc.update(sql, group_name);
-
+	public void addGroup(String groupName) {
+		groupDao.addGroup(groupName);
 	}
 
-	@Override
 	public List<String> getGroups() {
-
-		List<Map<String, Object>> rows = jdbc.queryForList("SELECT * FROM school.groups");
-
-		List<String> result = new ArrayList<String>();
-
-		result.add("\nList of groups in the database:\n");
-
-		for (Map<String, Object> row : rows) {
-
-			String groupInfo = String.format("ID: %-5d | Group Name: %-7s", row.get("group_id"), row.get("group_name"));
-
-			result.add(groupInfo);
-
-		}
-
-		return result;
-
+		return groupDao.getGroups();
 	}
 
-	@Override
 	public List<String> getGroupsWithLimitStudents(int limit) {
-
-		String sql = "SELECT g.group_id, g.group_name, count(student_id) AS student_count FROM school.groups g "
-				+ "LEFT JOIN school.students s ON g.group_id = s.group_id "
-				+ "GROUP BY g.group_id, g.group_name HAVING count(student_id) <= ?";
-
-		return jdbc.query(sql, new Object[] { limit },
-				(rs, rowNum) -> String.format("GroupID: %-5d Group name: %-8s Students amount: %-5d",
-						rs.getInt("group_id"), rs.getString("group_name"), rs.getInt("student_count")));
+		return groupDao.getGroupsWithLimitStudents(limit);
 	}
 }

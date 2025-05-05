@@ -15,7 +15,7 @@ import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.courses.CourseSe
 import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups.GroupService;
 
 @SpringBootTest
-class StudentServiceTest {
+class StudentServiceIntegrationTest {
 
 	@Autowired
 	private JdbcTemplate jdbc;

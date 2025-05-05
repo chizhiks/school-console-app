@@ -6,7 +6,7 @@ public interface CourseDao {
 
 	void generateCourses();
 
-	void addCourse(String course_name, String course_description);
+	void addCourse(String courseName, String courseDescription);
 
 	List<String> getCourses();
 }

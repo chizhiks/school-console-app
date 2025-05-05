@@ -6,10 +6,10 @@ import java.util.Scanner;
 
 import org.springframework.stereotype.Component;
 
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDaoImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDaoImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentDaoImpl;
 import ua.foxminded.chyzhov.schoolconsoleapp.database.DatabaseFacade;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.courses.CourseDaoImpl;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups.GroupDaoImpl;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.students.StudentDaoImpl;
 
 @Component
 public class UserInputService {

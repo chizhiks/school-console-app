@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.courses.CourseDaoImpl;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups.GroupDaoImpl;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.students.StudentDaoImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDaoImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDaoImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentDaoImpl;
 
 @Service
 public class DatabaseFacade {

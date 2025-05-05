@@ -11,8 +11,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import ua.foxminded.chyzhov.schoolconsoleapp.database.DatabaseFacade;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.courses.CourseService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups.GroupService;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseService;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupService;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentService;
 
 @SpringBootTest
 class StudentServiceIntegrationTest {

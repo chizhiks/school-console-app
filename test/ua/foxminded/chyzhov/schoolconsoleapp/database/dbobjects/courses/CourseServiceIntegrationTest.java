@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import ua.foxminded.chyzhov.schoolconsoleapp.database.DatabaseFacade;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

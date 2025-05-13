@@ -77,4 +77,11 @@ public class CourseDaoImpl implements CourseDao {
 		return result;
 	}
 
+	@Override
+	public boolean isCoursesTableEmpty() {
+		String sql = "SELECT COUNT(*) FROM school.courses";
+		Integer count = jdbc.queryForObject(sql, Integer.class);
+		return count == null || count == 0;
+	}
+
 }

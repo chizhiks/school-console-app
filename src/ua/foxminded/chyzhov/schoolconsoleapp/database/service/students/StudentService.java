@@ -15,21 +15,8 @@ public class StudentService {
 		this.studentDao = studentDao;
 	}
 
-	public void generateStudents() {
-		studentDao.generateStudents();
-	}
-
 	public void addStudent(int groupId, String firstName, String lastName) {
 		studentDao.addStudent(groupId, firstName, lastName);
-	}
-
-	public void assignStudentsToGroups() {
-		studentDao.assignStudentsToGroups();
-
-	}
-
-	public void assignStudentsToCourses() {
-		studentDao.assignStudentsToCourses();
 	}
 
 	public List<String> getStudents() {
@@ -54,6 +41,10 @@ public class StudentService {
 
 	public void removeStudentFromCourse(int studentId, int courseId) {
 		studentDao.removeStudentFromCourse(studentId, courseId);
+	}
+
+	public boolean isStudentsTableEmpty() {
+		return studentDao.isStudentsTableEmpty();
 	}
 
 }

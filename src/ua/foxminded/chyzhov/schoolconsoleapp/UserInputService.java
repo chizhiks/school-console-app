@@ -6,10 +6,11 @@ import java.util.Scanner;
 
 import org.springframework.stereotype.Component;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDaoImpl;
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDaoImpl;
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentDaoImpl;
 import ua.foxminded.chyzhov.schoolconsoleapp.database.DatabaseFacade;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.GeneratorService;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseService;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupService;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentService;
 
 @Component
 public class UserInputService {
@@ -28,16 +29,18 @@ public class UserInputService {
 	private static final int REMOVE_STUDENT_FROM_COURSE = 12;
 	private static final int EXIT = 13;
 
-	private final GroupDaoImpl groupService;
-	private final CourseDaoImpl courseService;
-	private final StudentDaoImpl studentService;
+	private final GroupService groupService;
+	private final CourseService courseService;
+	private final StudentService studentService;
+	private final GeneratorService generatorService;
 	private final DatabaseFacade databaseFacade;
 
-	public UserInputService(GroupDaoImpl groupService, CourseDaoImpl courseService, StudentDaoImpl studentService,
-			DatabaseFacade databaseFacade) {
+	public UserInputService(GroupService groupService, CourseService courseService, StudentService studentService,
+			GeneratorService generatorService, DatabaseFacade databaseFacade) {
 		this.groupService = groupService;
 		this.courseService = courseService;
 		this.studentService = studentService;
+		this.generatorService = generatorService;
 		this.databaseFacade = databaseFacade;
 	}
 
@@ -72,7 +75,7 @@ public class UserInputService {
 					databaseFacade.clearAllTables();
 					break;
 				case GENERATE_DATA:
-					databaseFacade.generateAllData();
+					generatorService.generateAllData();
 					break;
 				case VIEW_ALL_TABLES:
 					databaseFacade.getAllTables();

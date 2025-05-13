@@ -191,6 +191,52 @@ public class StudentDaoImpl implements StudentDao {
 	}
 
 	@Override
+	public List<String> getStudentsByGroup(String groupName) {
+
+		String sql = """
+				SELECT * FROM school.students s
+				JOIN school.groups g ON s.group_id = g.group_id
+				WHERE g.group_name = ?
+				""";
+
+		List<Map<String, Object>> rows = jdbc.queryForList(sql, groupName);
+
+		int maxFirstNameLength = 0;
+		int maxLastNameLength = 0;
+
+		for (Map<String, Object> row : rows) {
+			String firstName = (String) row.get("first_name");
+			String lastName = (String) row.get("last_name");
+
+			if (firstName.length() > maxFirstNameLength) {
+				maxFirstNameLength = firstName.length();
+			}
+
+			if (lastName.length() > maxLastNameLength) {
+				maxLastNameLength = lastName.length();
+			}
+		}
+
+		maxFirstNameLength += 2;
+		maxLastNameLength += 2;
+
+		List<String> result = new ArrayList<>();
+
+		result.add("\nList of students in the course '" + groupName + "':\n");
+
+		for (Map<String, Object> row : rows) {
+
+			String studentInfo = String.format(
+					"ID: %-5d First Name: %-" + maxFirstNameLength + "s Last Name: %-" + maxLastNameLength + "s",
+					row.get("student_id"), row.get("first_name"), row.get("last_name"));
+
+			result.add(studentInfo);
+		}
+
+		return result;
+	}
+
+	@Override
 	public void deleteStudent(int studentId) {
 
 		try {
@@ -228,5 +274,12 @@ public class StudentDaoImpl implements StudentDao {
 					+ ": " + e.getMessage());
 		}
 
+	}
+
+	@Override
+	public boolean isStudentsTableEmpty() {
+		String sql = "SELECT COUNT(*) FROM school.students";
+		Integer count = jdbc.queryForObject(sql, Integer.class);
+		return count == null || count == 0;
 	}
 }

@@ -9,4 +9,6 @@ public interface CourseDao {
 	void addCourse(String courseName, String courseDescription);
 
 	List<String> getCourses();
+
+	boolean isCoursesTableEmpty();
 }

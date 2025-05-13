@@ -15,16 +15,16 @@ public class CourseService {
 		this.courseDao = courseDao;
 	}
 
-	public void generateCourses() {
-		courseDao.generateCourses();
-	}
-
 	public void addCourse(String courseName, String courseDescription) {
 		courseDao.addCourse(courseName, courseDescription);
 	}
 
 	public List<String> getCourses() {
 		return courseDao.getCourses();
+	}
+
+	public boolean isCoursesTableEmpty() {
+		return courseDao.isCoursesTableEmpty();
 	}
 
 }

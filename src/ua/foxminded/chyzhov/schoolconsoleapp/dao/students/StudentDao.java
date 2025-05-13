@@ -18,9 +18,13 @@ public interface StudentDao {
 
 	List<String> getStudentsByCourse(String courseName);
 
+	List<String> getStudentsByGroup(String groupName);
+
 	void deleteStudent(int studentId);
 
 	void addStudentToCourse(int studentId, int courseId);
 
 	void removeStudentFromCourse(int studentId, int courseId);
+
+	boolean isStudentsTableEmpty();
 }

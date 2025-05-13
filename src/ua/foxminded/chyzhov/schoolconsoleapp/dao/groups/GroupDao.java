@@ -11,4 +11,6 @@ public interface GroupDao {
 	List<String> getGroups();
 
 	List<String> getGroupsWithLimitStudents(int limit);
+
+	boolean isGroupsTableEmpty();
 }

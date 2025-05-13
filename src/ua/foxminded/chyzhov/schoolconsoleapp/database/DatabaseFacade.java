@@ -5,20 +5,20 @@ import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDaoImpl;
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDaoImpl;
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentDaoImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseService;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupService;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentService;
 
 @Service
 public class DatabaseFacade {
 
 	private final JdbcTemplate jdbc;
-	private final GroupDaoImpl groupService;
-	private final CourseDaoImpl courseService;
-	private final StudentDaoImpl studentService;
+	private final GroupService groupService;
+	private final CourseService courseService;
+	private final StudentService studentService;
 
-	public DatabaseFacade(JdbcTemplate jdbc, GroupDaoImpl groupService, CourseDaoImpl courseService,
-			StudentDaoImpl studentService) {
+	public DatabaseFacade(JdbcTemplate jdbc, GroupService groupService, CourseService courseService,
+			StudentService studentService) {
 		this.jdbc = jdbc;
 		this.groupService = groupService;
 		this.courseService = courseService;
@@ -60,15 +60,6 @@ public class DatabaseFacade {
 		for (String result : results) {
 			System.out.println(result);
 		}
-	}
-
-	public void generateAllData() {
-		groupService.generateGroups();
-		courseService.generateCourses();
-		studentService.generateStudents();
-		studentService.assignStudentsToGroups();
-		studentService.assignStudentsToCourses();
-		System.out.println("All data in tables have been generated successfully.");
 	}
 
 	public int getMaxRowsInTableAmount(String tableName) {

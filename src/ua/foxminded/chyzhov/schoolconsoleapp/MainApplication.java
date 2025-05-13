@@ -8,11 +8,7 @@ public class MainApplication {
 
 	public static void main(String[] args) {
 
-		var context = SpringApplication.run(MainApplication.class, args);
-
-		UserInputService userInputService = context.getBean(UserInputService.class);
-		userInputService.start();
-
+		SpringApplication.run(MainApplication.class, args);
 	}
 
 }

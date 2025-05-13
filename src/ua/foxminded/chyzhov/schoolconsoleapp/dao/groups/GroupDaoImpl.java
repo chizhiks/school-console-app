@@ -70,4 +70,12 @@ public class GroupDaoImpl implements GroupDao {
 				(rs, rowNum) -> String.format("GroupID: %-5d Group name: %-8s Students amount: %-5d",
 						rs.getInt("group_id"), rs.getString("group_name"), rs.getInt("student_count")));
 	}
+
+	@Override
+	public boolean isGroupsTableEmpty() {
+		String sql = "SELECT COUNT(*) FROM school.groups";
+		Integer count = jdbc.queryForObject(sql, Integer.class);
+		return count == null || count == 0;
+	}
+
 }

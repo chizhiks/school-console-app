@@ -1,10 +1,10 @@
-package ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.courses;
+package ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.DAO.CourseDao;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDao;
 
 @Service
 public class CourseService {

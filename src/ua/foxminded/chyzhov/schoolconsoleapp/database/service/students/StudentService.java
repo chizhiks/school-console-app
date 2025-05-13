@@ -1,10 +1,10 @@
-package ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.students;
+package ua.foxminded.chyzhov.schoolconsoleapp.database.service.students;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.DAO.StudentDao;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentDao;
 
 @Service
 public class StudentService {

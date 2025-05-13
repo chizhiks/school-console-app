@@ -1,10 +1,10 @@
-package ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups;
+package ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.DAO.GroupDao;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDao;
 
 @Service
 public class GroupService {

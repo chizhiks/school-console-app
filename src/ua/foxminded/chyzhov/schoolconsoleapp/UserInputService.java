@@ -4,14 +4,44 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.database.DatabaseFacade;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.courses.CourseService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups.GroupService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.students.StudentService;
+import org.springframework.stereotype.Component;
 
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDaoImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDaoImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentDaoImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.DatabaseFacade;
+
+@Component
 public class UserInputService {
 
-	public static void start() {
+	private static final int CLEAR_TABLES = 1;
+	private static final int GENERATE_DATA = 2;
+	private static final int VIEW_ALL_TABLES = 3;
+	private static final int VIEW_ALL_STUDENTS = 4;
+	private static final int VIEW_ALL_GROUPS = 5;
+	private static final int VIEW_ALL_COURSES = 6;
+	private static final int FIND_GROUPS_BY_MAX_STUDENTS = 7;
+	private static final int FIND_STUDENTS_BY_COURSE = 8;
+	private static final int ADD_STUDENT = 9;
+	private static final int DELETE_STUDENT = 10;
+	private static final int ADD_STUDENT_TO_COURSE = 11;
+	private static final int REMOVE_STUDENT_FROM_COURSE = 12;
+	private static final int EXIT = 13;
+
+	private final GroupDaoImpl groupService;
+	private final CourseDaoImpl courseService;
+	private final StudentDaoImpl studentService;
+	private final DatabaseFacade databaseFacade;
+
+	public UserInputService(GroupDaoImpl groupService, CourseDaoImpl courseService, StudentDaoImpl studentService,
+			DatabaseFacade databaseFacade) {
+		this.groupService = groupService;
+		this.courseService = courseService;
+		this.studentService = studentService;
+		this.databaseFacade = databaseFacade;
+	}
+
+	public void start() {
 
 		Scanner sc = new Scanner(System.in);
 
@@ -38,61 +68,61 @@ public class UserInputService {
 				sc.nextLine();
 
 				switch (menuChoice) {
-				case 1:
-					DatabaseFacade.clearAllTables();
+				case CLEAR_TABLES:
+					databaseFacade.clearAllTables();
 					break;
-				case 2:
-					DatabaseFacade.generateAllData();
+				case GENERATE_DATA:
+					databaseFacade.generateAllData();
 					break;
-				case 3:
-					DatabaseFacade.getAllTables();
+				case VIEW_ALL_TABLES:
+					databaseFacade.getAllTables();
 					break;
-				case 4:
-					List<String> results = StudentService.getStudents();
+				case VIEW_ALL_STUDENTS:
+					List<String> results = studentService.getStudents();
 
 					for (String result : results) {
 						System.out.println(result);
 					}
 					break;
-				case 5:
-					results = GroupService.getGroups();
-
-					for (String result : results) {
-						System.out.println(result);
-					}
-
-					break;
-				case 6:
-					results = CourseService.getCourses();
+				case VIEW_ALL_GROUPS:
+					results = groupService.getGroups();
 
 					for (String result : results) {
 						System.out.println(result);
 					}
 
 					break;
-				case 7:
+				case VIEW_ALL_COURSES:
+					results = courseService.getCourses();
+
+					for (String result : results) {
+						System.out.println(result);
+					}
+
+					break;
+				case FIND_GROUPS_BY_MAX_STUDENTS:
 					System.out.printf("Enter max student count: ");
 					int maxCount = sc.nextInt();
 					sc.nextLine();
-					results = GroupService.getGroupsWithLimitStudents(maxCount);
+					results = groupService.getGroupsWithLimitStudents(maxCount);
 
 					for (String result : results) {
 						System.out.println(result);
 					}
 
 					break;
-				case 8:
+				case FIND_STUDENTS_BY_COURSE:
 					System.out.printf("\nTo search for students, enter the name of the course: ");
 					String courseName = sc.nextLine();
-					results = StudentService.getStudentsByCourse(courseName);
+					results = studentService.getStudentsByCourse(courseName);
 
 					for (String result : results) {
 						System.out.println(result);
 					}
 
 					break;
-				case 9:
-					int maxGroupID = DatabaseFacade.getMaxRowsInTableAmount("groups");
+				case ADD_STUDENT:
+					int maxGroupID = databaseFacade.getMaxRowsInTableAmount("groups");
 					int group_id = 0;
 
 					while (true) {
@@ -114,11 +144,11 @@ public class UserInputService {
 					System.out.printf("Enter the last name: ");
 					String lastName = sc.nextLine();
 
-					StudentService.addStudent(group_id, firstName, lastName);
+					studentService.addStudent(group_id, firstName, lastName);
 					break;
-				case 10:
+				case DELETE_STUDENT:
 					int student_id;
-					int maxStudentID = DatabaseFacade.getMaxRowsInTableAmount("students");
+					int maxStudentID = databaseFacade.getMaxRowsInTableAmount("students");
 
 					while (true) {
 						System.out.printf("\nEnter the student_id (1 - " + maxStudentID + ") to delete the student: ");
@@ -132,12 +162,12 @@ public class UserInputService {
 						}
 					}
 
-					StudentService.deleteStudent(student_id);
+					studentService.deleteStudent(student_id);
 					break;
-				case 11:
+				case ADD_STUDENT_TO_COURSE:
 					int course_id;
-					maxStudentID = DatabaseFacade.getMaxRowsInTableAmount("students");
-					int maxCourseID = DatabaseFacade.getMaxRowsInTableAmount("courses");
+					maxStudentID = databaseFacade.getMaxRowsInTableAmount("students");
+					int maxCourseID = databaseFacade.getMaxRowsInTableAmount("courses");
 
 					while (true) {
 						System.out.printf(
@@ -159,11 +189,11 @@ public class UserInputService {
 						}
 					}
 
-					StudentService.addStudentToCourse(student_id, course_id);
+					studentService.addStudentToCourse(student_id, course_id);
 					break;
-				case 12:
-					maxStudentID = DatabaseFacade.getMaxRowsInTableAmount("students");
-					maxCourseID = DatabaseFacade.getMaxRowsInTableAmount("courses");
+				case REMOVE_STUDENT_FROM_COURSE:
+					maxStudentID = databaseFacade.getMaxRowsInTableAmount("students");
+					maxCourseID = databaseFacade.getMaxRowsInTableAmount("courses");
 
 					while (true) {
 						System.out.printf("\nEnter the student_id (1 - " + maxStudentID
@@ -185,9 +215,9 @@ public class UserInputService {
 						}
 					}
 
-					StudentService.removeStudentFromCourse(student_id, course_id);
+					studentService.removeStudentFromCourse(student_id, course_id);
 					break;
-				case 13:
+				case EXIT:
 					System.out.println("\nExiting...");
 					sc.close();
 					return;

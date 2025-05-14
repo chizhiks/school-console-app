@@ -16,7 +16,7 @@ import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentDao;
 import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentService;
 
 @SpringBootTest(classes = { StudentService.class })
-class StudentDaoImplIntegrationTest {
+class StudentServiceIntegrationTest {
 
 	@MockBean
 	private StudentDao studentDao;

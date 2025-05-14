@@ -9,15 +9,15 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDao;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDao;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseService;
+
 @SpringBootTest(classes = { CourseService.class })
-class CourseDaoImplIntegrationTest {
+class CourseServiceIntegrationTest {
 
 	@MockBean
 	CourseDao courseDao;

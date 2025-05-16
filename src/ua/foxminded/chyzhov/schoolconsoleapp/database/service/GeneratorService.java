@@ -34,27 +34,22 @@ public class GeneratorService {
 
 	public void generateGroups() {
 		groupDao.generateGroups();
-		logger.info("Groups were generated successfully");
 	}
 
 	public void generateCourses() {
 		courseDao.generateCourses();
-		logger.info("Courses were generated successfully");
 	}
 
 	public void generateStudents() {
 		studentDao.generateStudents();
-		logger.info("Students were successfully generated");
 	}
 
 	public void assignStudentsToGroups() {
 		studentDao.assignStudentsToGroups();
-		logger.info("Students were successfully assigned to groups");
 	}
 
 	public void assignStudentsToCourses() {
 		studentDao.assignStudentsToCourses();
-		logger.info("Students were successfully assigned to courses");
 	}
 
 }

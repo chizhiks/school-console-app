@@ -52,9 +52,7 @@ public class DataCheckRunner implements ApplicationRunner {
 
 		}
 
-		logger.info("Starting user input service.");
 		userInputService.start();
-		logger.info("User input service started.");
 	}
 
 }

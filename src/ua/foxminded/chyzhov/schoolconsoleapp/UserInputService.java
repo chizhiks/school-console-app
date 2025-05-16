@@ -79,20 +79,15 @@ public class UserInputService {
 				switch (menuChoice) {
 				case CLEAR_TABLES:
 					databaseFacade.clearAllTables();
-					logger.info("All tables cleared successfully");
 					break;
 				case GENERATE_DATA:
 					generatorService.generateAllData();
-					logger.info("All data generated successfully");
 					break;
 				case VIEW_ALL_TABLES:
 					databaseFacade.getAllTables();
-					logger.info("All tables got successfully");
 					break;
 				case VIEW_ALL_STUDENTS:
 					List<String> results = studentService.getStudents();
-
-					logger.info("Received {} students from the database", results.size());
 
 					for (String result : results) {
 						System.out.println(result);
@@ -101,8 +96,6 @@ public class UserInputService {
 				case VIEW_ALL_GROUPS:
 					results = groupService.getGroups();
 
-					logger.info("Received {} groups from the database", results.size());
-
 					for (String result : results) {
 						System.out.println(result);
 					}
@@ -110,8 +103,6 @@ public class UserInputService {
 					break;
 				case VIEW_ALL_COURSES:
 					results = courseService.getCourses();
-
-					logger.info("Received {} courses from the database", results.size());
 
 					for (String result : results) {
 						System.out.println(result);
@@ -124,9 +115,6 @@ public class UserInputService {
 					sc.nextLine();
 					results = groupService.getGroupsWithLimitStudents(maxCount);
 
-					logger.info("Received {} groups with the number of students less than or equal to {}",
-							results.size(), maxCount);
-
 					for (String result : results) {
 						System.out.println(result);
 					}
@@ -136,9 +124,6 @@ public class UserInputService {
 					System.out.printf("\nTo search for students, enter the name of the course: ");
 					String courseName = sc.nextLine();
 					results = studentService.getStudentsByCourse(courseName);
-
-					logger.info("Received {} students in the course '{}' from the database", results.size(),
-							courseName);
 
 					for (String result : results) {
 						System.out.println(result);
@@ -155,7 +140,7 @@ public class UserInputService {
 						groupId = sc.nextInt();
 						sc.nextLine();
 						if (groupId > maxGroupID || groupId < 1) {
-							System.out.println("group_id must be from 1 to " + maxGroupID);
+							logger.warn("group_id must be from 1 to {}", maxGroupID);
 							continue;
 						} else {
 							break;
@@ -169,8 +154,6 @@ public class UserInputService {
 					String lastName = sc.nextLine();
 
 					studentService.addStudent(groupId, firstName, lastName);
-					logger.info("Student added: GroupId = {}, FirstName = {}, LastName = {}", groupId, firstName,
-							lastName);
 					break;
 				case DELETE_STUDENT:
 					int studentId;
@@ -181,7 +164,7 @@ public class UserInputService {
 						studentId = sc.nextInt();
 						sc.nextLine();
 						if (studentId > maxStudentID || studentId < 1) {
-							System.out.println("student_id must be from 1 to " + maxStudentID);
+							logger.warn("student_id must be from 1 to {}", maxStudentID);
 							continue;
 						} else {
 							break;
@@ -189,7 +172,6 @@ public class UserInputService {
 					}
 
 					studentService.deleteStudent(studentId);
-					logger.info("Student with ID: {} was successfully deleted", studentId);
 					break;
 				case ADD_STUDENT_TO_COURSE:
 					int courseId;
@@ -208,8 +190,8 @@ public class UserInputService {
 						sc.nextLine();
 
 						if (studentId > maxStudentID || studentId < 1 || courseId > maxCourseID || courseId < 1) {
-							System.out.println("student_id must be from 1 to " + maxStudentID);
-							System.out.println("course_id must be from 1 to " + maxCourseID);
+							logger.warn("student_id must be from 1 to {}", maxStudentID);
+							logger.warn("course_id must be from 1 to {}", maxCourseID);
 							continue;
 						} else {
 							break;
@@ -217,9 +199,6 @@ public class UserInputService {
 					}
 
 					studentService.addStudentToCourse(studentId, courseId);
-					logger.info("Student with ID: {} was successfully added to course with ID: {}", studentId,
-							courseId);
-
 					break;
 				case REMOVE_STUDENT_FROM_COURSE:
 					maxStudentID = databaseFacade.getMaxRowsInTableAmount("students");
@@ -237,8 +216,8 @@ public class UserInputService {
 						sc.nextLine();
 
 						if (studentId > maxStudentID || studentId < 1 || courseId > maxCourseID || courseId < 1) {
-							System.out.println("student_id must be from 1 to " + maxStudentID);
-							System.out.println("course_id must be from 1 to " + maxCourseID);
+							logger.warn("student_id must be from 1 to {}", maxStudentID);
+							logger.warn("course_id must be from 1 to {}", maxCourseID);
 							continue;
 						} else {
 							break;
@@ -246,8 +225,6 @@ public class UserInputService {
 					}
 
 					studentService.removeStudentFromCourse(studentId, courseId);
-					logger.info("Student with ID: {} was successfully removed from course with ID: {}", studentId,
-							courseId);
 					break;
 				case EXIT:
 					logger.info("User exited the application.");

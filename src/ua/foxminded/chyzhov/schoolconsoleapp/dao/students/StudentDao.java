@@ -24,7 +24,7 @@ public interface StudentDao {
 
 	void deleteStudent(int studentId) throws DaoException;
 
-	void addStudentToCourse(int studentId, int courseId);
+	void addStudentToCourse(int studentId, int courseId) throws DaoException;
 
 	void removeStudentFromCourse(int studentId, int courseId) throws DaoException;
 

@@ -50,23 +50,17 @@ public class DatabaseFacade {
 
 		List<String> results = studentService.getStudents();
 
-		logger.info("Received {} students from the database", results.size());
-
 		for (String result : results) {
 			System.out.println(result);
 		}
 
 		results = groupService.getGroups();
 
-		logger.info("Received {} groups from the database", results.size());
-
 		for (String result : results) {
 			System.out.println(result);
 		}
 
 		results = courseService.getCourses();
-
-		logger.info("Received {} courses from the database", results.size());
 
 		for (String result : results) {
 			System.out.println(result);

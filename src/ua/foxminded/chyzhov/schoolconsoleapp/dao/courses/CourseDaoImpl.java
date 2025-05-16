@@ -29,7 +29,7 @@ public class CourseDaoImpl implements CourseDao {
 			addCourse(course, course + " description");
 		}
 
-		logger.info("Courses were generated successfully");
+		logger.info("10 courses were generated successfully");
 
 	}
 
@@ -39,7 +39,7 @@ public class CourseDaoImpl implements CourseDao {
 		jdbc.update("INSERT INTO school.courses(course_name, course_description) VALUES (?, ?)", courseName,
 				courseDescription);
 
-		logger.info("Course added: CourseName: {}, CourseDescription: {}", courseName, courseDescription);
+		logger.info("Course added, CourseName: {}, CourseDescription: {}", courseName, courseDescription);
 
 	}
 

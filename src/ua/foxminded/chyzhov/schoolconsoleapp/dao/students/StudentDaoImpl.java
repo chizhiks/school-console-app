@@ -46,7 +46,7 @@ public class StudentDaoImpl implements StudentDao {
 			jdbc.update(sql, firstName, lastName);
 		}
 
-		logger.info("Students were successfully generated");
+		logger.info("200 students were successfully generated");
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class StudentDaoImpl implements StudentDao {
 
 		jdbc.update(sql, groupId, firstName, lastName);
 
-		logger.info("Student added: GroupId = {}, FirstName = {}, LastName = {}", groupId, firstName, lastName);
+		logger.info("Student added, GroupId = {}, FirstName = {}, LastName = {}", groupId, firstName, lastName);
 	}
 
 	@Override
@@ -281,10 +281,16 @@ public class StudentDaoImpl implements StudentDao {
 	}
 
 	@Override
-	public void addStudentToCourse(int studentId, int courseId) {
+	public void addStudentToCourse(int studentId, int courseId) throws DaoException {
 
-		jdbc.update("INSERT INTO school.students_courses VALUES (?, ?)", studentId, courseId);
-		logger.info("Student with ID: {} was successfully added to course with ID: {}", studentId, courseId);
+		try {
+			jdbc.update("INSERT INTO school.students_courses VALUES (?, ?)", studentId, courseId);
+			logger.info("Student with ID: {} was successfully added to course with ID: {}", studentId, courseId);
+		} catch (DataAccessException e) {
+			logger.error("Failed to add student with ID: {} to course with ID: {}", studentId, courseId, e);
+			throw new DaoException("Failed to add student with ID: " + studentId + " to course with ID: " + courseId,
+					e);
+		}
 
 	}
 

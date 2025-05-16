@@ -31,7 +31,7 @@ public class GroupDaoImpl implements GroupDao {
 			addGroup(randomizer.getRandomGroupName());
 		}
 
-		logger.info("Groups were generated successfully");
+		logger.info("10 groups were generated successfully");
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public class GroupDaoImpl implements GroupDao {
 
 		jdbc.update(sql, groupName);
 
-		logger.info("Group added: GroupName: {}", groupName);
+		logger.info("Group added, GroupName: {}", groupName);
 
 	}
 

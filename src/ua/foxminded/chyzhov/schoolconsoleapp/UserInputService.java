@@ -4,6 +4,8 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import ua.foxminded.chyzhov.schoolconsoleapp.database.DatabaseFacade;
@@ -14,6 +16,8 @@ import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentSe
 
 @Component
 public class UserInputService {
+
+	private static final Logger logger = LoggerFactory.getLogger(UserInputService.class);
 
 	private static final int CLEAR_TABLES = 1;
 	private static final int GENERATE_DATA = 2;
@@ -69,6 +73,8 @@ public class UserInputService {
 
 				int menuChoice = sc.nextInt();
 				sc.nextLine();
+
+				logger.info("User chose menu option: {}", menuChoice);
 
 				switch (menuChoice) {
 				case CLEAR_TABLES:
@@ -126,15 +132,15 @@ public class UserInputService {
 					break;
 				case ADD_STUDENT:
 					int maxGroupID = databaseFacade.getMaxRowsInTableAmount("groups");
-					int group_id = 0;
+					int groupId = 0;
 
 					while (true) {
 						System.out
 								.printf("\nEnter the group_id (1 - " + maxGroupID + ") to which to add the student: ");
-						group_id = sc.nextInt();
+						groupId = sc.nextInt();
 						sc.nextLine();
-						if (group_id > maxGroupID || group_id < 1) {
-							System.out.println("group_id must be from 1 to " + maxGroupID);
+						if (groupId > maxGroupID || groupId < 1) {
+							logger.warn("group_id must be from 1 to {}", maxGroupID);
 							continue;
 						} else {
 							break;
@@ -147,52 +153,52 @@ public class UserInputService {
 					System.out.printf("Enter the last name: ");
 					String lastName = sc.nextLine();
 
-					studentService.addStudent(group_id, firstName, lastName);
+					studentService.addStudent(groupId, firstName, lastName);
 					break;
 				case DELETE_STUDENT:
-					int student_id;
+					int studentId;
 					int maxStudentID = databaseFacade.getMaxRowsInTableAmount("students");
 
 					while (true) {
 						System.out.printf("\nEnter the student_id (1 - " + maxStudentID + ") to delete the student: ");
-						student_id = sc.nextInt();
+						studentId = sc.nextInt();
 						sc.nextLine();
-						if (student_id > maxStudentID || student_id < 1) {
-							System.out.println("student_id must be from 1 to " + maxStudentID);
+						if (studentId > maxStudentID || studentId < 1) {
+							logger.warn("student_id must be from 1 to {}", maxStudentID);
 							continue;
 						} else {
 							break;
 						}
 					}
 
-					studentService.deleteStudent(student_id);
+					studentService.deleteStudent(studentId);
 					break;
 				case ADD_STUDENT_TO_COURSE:
-					int course_id;
+					int courseId;
 					maxStudentID = databaseFacade.getMaxRowsInTableAmount("students");
 					int maxCourseID = databaseFacade.getMaxRowsInTableAmount("courses");
 
 					while (true) {
 						System.out.printf(
 								"\nEnter the student_id (1 - " + maxStudentID + ") to add the student to the course: ");
-						student_id = sc.nextInt();
+						studentId = sc.nextInt();
 						sc.nextLine();
 
 						System.out.printf(
 								"\nEnter the course_id (1 - " + maxCourseID + ") to add the student to the course: ");
-						course_id = sc.nextInt();
+						courseId = sc.nextInt();
 						sc.nextLine();
 
-						if (student_id > maxStudentID || student_id < 1 || course_id > maxCourseID || course_id < 1) {
-							System.out.println("student_id must be from 1 to " + maxStudentID);
-							System.out.println("course_id must be from 1 to " + maxCourseID);
+						if (studentId > maxStudentID || studentId < 1 || courseId > maxCourseID || courseId < 1) {
+							logger.warn("student_id must be from 1 to {}", maxStudentID);
+							logger.warn("course_id must be from 1 to {}", maxCourseID);
 							continue;
 						} else {
 							break;
 						}
 					}
 
-					studentService.addStudentToCourse(student_id, course_id);
+					studentService.addStudentToCourse(studentId, courseId);
 					break;
 				case REMOVE_STUDENT_FROM_COURSE:
 					maxStudentID = databaseFacade.getMaxRowsInTableAmount("students");
@@ -201,37 +207,40 @@ public class UserInputService {
 					while (true) {
 						System.out.printf("\nEnter the student_id (1 - " + maxStudentID
 								+ ") to remove the student from the course: ");
-						student_id = sc.nextInt();
+						studentId = sc.nextInt();
 						sc.nextLine();
 
 						System.out.printf("\nEnter the course_id (1 - " + maxCourseID
 								+ ") to remove the student from the course: ");
-						course_id = sc.nextInt();
+						courseId = sc.nextInt();
 						sc.nextLine();
 
-						if (student_id > maxStudentID || student_id < 1 || course_id > maxCourseID || course_id < 1) {
-							System.out.println("student_id must be from 1 to " + maxStudentID);
-							System.out.println("course_id must be from 1 to " + maxCourseID);
+						if (studentId > maxStudentID || studentId < 1 || courseId > maxCourseID || courseId < 1) {
+							logger.warn("student_id must be from 1 to {}", maxStudentID);
+							logger.warn("course_id must be from 1 to {}", maxCourseID);
 							continue;
 						} else {
 							break;
 						}
 					}
 
-					studentService.removeStudentFromCourse(student_id, course_id);
+					studentService.removeStudentFromCourse(studentId, courseId);
 					break;
 				case EXIT:
+					logger.info("User exited the application.");
 					System.out.println("\nExiting...");
 					sc.close();
 					return;
 				default:
+					logger.warn("User selected invalid menu option: {}", menuChoice);
 					System.out.println("Invalid choice. Try again.");
 				}
 			} catch (InputMismatchException e) {
+				logger.warn("User input mismatch exception: {}", e.getMessage());
 				System.out.println("Invalid input. Please try again.");
 				sc.nextLine();
 			} catch (Exception e) {
-				System.out.println("An error occurred: " + e.getMessage());
+				logger.error("Unexpected error occurred: ", e);
 			}
 		}
 

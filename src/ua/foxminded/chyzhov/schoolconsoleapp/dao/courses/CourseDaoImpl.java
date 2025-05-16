@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class CourseDaoImpl implements CourseDao {
+
+	private static final Logger logger = LoggerFactory.getLogger(CourseDaoImpl.class);
 
 	private final JdbcTemplate jdbc;
 
@@ -25,6 +29,8 @@ public class CourseDaoImpl implements CourseDao {
 			addCourse(course, course + " description");
 		}
 
+		logger.info("{} courses were generated successfully", courses.length);
+
 	}
 
 	@Override
@@ -32,6 +38,8 @@ public class CourseDaoImpl implements CourseDao {
 
 		jdbc.update("INSERT INTO school.courses(course_name, course_description) VALUES (?, ?)", courseName,
 				courseDescription);
+
+		logger.info("Course added, CourseName: {}, CourseDescription: {}", courseName, courseDescription);
 
 	}
 
@@ -74,6 +82,8 @@ public class CourseDaoImpl implements CourseDao {
 			result.add(courseInfo);
 		}
 
+		logger.info("Received {} courses from the database", rows.size());
+
 		return result;
 	}
 
@@ -81,7 +91,9 @@ public class CourseDaoImpl implements CourseDao {
 	public boolean isCoursesTableEmpty() {
 		String sql = "SELECT COUNT(*) FROM school.courses";
 		Integer count = jdbc.queryForObject(sql, Integer.class);
-		return count == null || count == 0;
+		boolean isEmpty = count == null || count == 0;
+		logger.info("Checked if courses table is empty: {}", isEmpty);
+		return isEmpty;
 	}
 
 }

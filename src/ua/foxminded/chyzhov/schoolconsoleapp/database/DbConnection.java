@@ -4,7 +4,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DbConnection {
+
+	private static final Logger logger = LoggerFactory.getLogger(DbConnection.class);
 
 	private static DbConnection instance = null;
 	private Connection connection = null;
@@ -17,7 +22,13 @@ public class DbConnection {
 		final String JDBC_USER = "postgres";
 		final String JDBC_PASSWORD = "1234";
 
-		connection = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
+		try {
+			connection = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
+			logger.info("Database connection established successfully");
+		} catch (SQLException e) {
+			logger.error("Failed to establish database connection", e);
+			throw e;
+		}
 	}
 
 	public Connection getConnection() {
@@ -25,9 +36,15 @@ public class DbConnection {
 	}
 
 	public static Connection getInstance() throws SQLException {
-		if (instance == null || instance.getConnection().isClosed()) {
-			instance = new DbConnection();
-			instance.init();
+		try {
+			if (instance == null || instance.getConnection().isClosed()) {
+				instance = new DbConnection();
+				instance.init();
+				logger.info("Database connection instance successfully initialized.");
+			}
+		} catch (SQLException e) {
+			logger.error("Failed to initialize database connection instance", e);
+			throw e;
 		}
 
 		return instance.getConnection();

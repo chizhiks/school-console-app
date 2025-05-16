@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDao;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDao;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentDao;
 import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentService;
@@ -90,7 +91,7 @@ class StudentServiceIntegrationTest {
 	}
 
 	@Test
-	void removeStudentFromCourse_shouldRemoveStudent_thenStudentIsAssignToCourse() {
+	void removeStudentFromCourse_shouldRemoveStudent_thenStudentIsAssignToCourse() throws DaoException {
 
 		when(studentDao.getStudentsByCourse("Test Course")).thenReturn(List.of("Student 201"));
 

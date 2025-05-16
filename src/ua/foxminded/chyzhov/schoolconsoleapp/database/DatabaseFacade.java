@@ -2,15 +2,20 @@ package ua.foxminded.chyzhov.schoolconsoleapp.database;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
 import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseService;
 import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupService;
 import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentService;
 
 @Service
 public class DatabaseFacade {
+
+	private static final Logger logger = LoggerFactory.getLogger(DatabaseFacade.class);
 
 	private final JdbcTemplate jdbc;
 	private final GroupService groupService;
@@ -25,7 +30,7 @@ public class DatabaseFacade {
 		this.studentService = studentService;
 	}
 
-	public void clearAllTables() {
+	public void clearAllTables() throws DaoException {
 
 		try {
 
@@ -33,11 +38,11 @@ public class DatabaseFacade {
 			jdbc.update("TRUNCATE TABLE school.students RESTART IDENTITY CASCADE");
 			jdbc.update("TRUNCATE TABLE school.courses RESTART IDENTITY CASCADE");
 			jdbc.update("TRUNCATE TABLE school.groups RESTART IDENTITY CASCADE");
-			System.out.println("All tables have been deleted successfully.");
+			logger.info("All tables have been deleted successfully.");
 
 		} catch (Exception e) {
-			System.out.println("Failed to clear all tables data.");
-			e.printStackTrace();
+			logger.error("Failed to clear all tables data.", e);
+			throw new DaoException("Failed to clear all tables data.", e);
 		}
 	}
 
@@ -60,19 +65,27 @@ public class DatabaseFacade {
 		for (String result : results) {
 			System.out.println(result);
 		}
+
+		logger.info("All data received successfully from the database");
 	}
 
 	public int getMaxRowsInTableAmount(String tableName) {
 
 		String sql = "SELECT COUNT(*) FROM school." + tableName;
 
-		return jdbc.queryForObject(sql, Integer.class);
+		int maxRows = jdbc.queryForObject(sql, Integer.class);
+
+		logger.info("Table '{}' contains {} rows.", tableName, maxRows);
+
+		return maxRows;
 
 	}
 
 	public int getNextRowInTable(String tableName) {
 
 		int resultId = getMaxRowsInTableAmount(tableName) + 1;
+
+		logger.info("Next row ID for table '{}' is {}", tableName, resultId);
 
 		return resultId;
 	}

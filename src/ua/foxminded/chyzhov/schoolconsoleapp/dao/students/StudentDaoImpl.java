@@ -16,6 +16,8 @@ import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
 @Repository
 public class StudentDaoImpl implements StudentDao {
 
+	private static final int DEFAULT_STUDENT_COUNT = 200;
+
 	private static final Logger logger = LoggerFactory.getLogger(StudentDaoImpl.class);
 
 	private final JdbcTemplate jdbc;
@@ -26,6 +28,7 @@ public class StudentDaoImpl implements StudentDao {
 
 	@Override
 	public void generateStudents() {
+
 		String[] firstNames = { "John", "Emma", "Michael", "Olivia", "Daniel", "Sophia", "David", "Ava", "James",
 				"Isabella", "William", "Mia", "Alexander", "Charlotte", "Ethan", "Amelia", "Benjamin", "Harper",
 				"Henry", "Evelyn" };
@@ -38,7 +41,7 @@ public class StudentDaoImpl implements StudentDao {
 
 		Random random = new Random();
 
-		for (int i = 0; i < 200; i++) {
+		for (int i = 0; i < DEFAULT_STUDENT_COUNT; i++) {
 
 			String firstName = firstNames[random.nextInt(firstNames.length)];
 			String lastName = lastNames[random.nextInt(lastNames.length)];
@@ -46,7 +49,7 @@ public class StudentDaoImpl implements StudentDao {
 			jdbc.update(sql, firstName, lastName);
 		}
 
-		logger.info("200 students were successfully generated");
+		logger.info("{} students were successfully generated", DEFAULT_STUDENT_COUNT);
 	}
 
 	@Override

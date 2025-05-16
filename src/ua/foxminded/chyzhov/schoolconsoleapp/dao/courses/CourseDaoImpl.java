@@ -29,7 +29,7 @@ public class CourseDaoImpl implements CourseDao {
 			addCourse(course, course + " description");
 		}
 
-		logger.info("10 courses were generated successfully");
+		logger.info("{} courses were generated successfully", courses.length);
 
 	}
 

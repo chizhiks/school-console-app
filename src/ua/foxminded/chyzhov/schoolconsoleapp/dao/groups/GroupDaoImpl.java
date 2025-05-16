@@ -14,6 +14,8 @@ import ua.foxminded.chyzhov.schoolconsoleapp.Randomizer;
 @Repository
 public class GroupDaoImpl implements GroupDao {
 
+	private static final int DEFAULT_GROUP_COUNT = 10;
+
 	private static final Logger logger = LoggerFactory.getLogger(GroupDaoImpl.class);
 
 	private final JdbcTemplate jdbc;
@@ -27,11 +29,11 @@ public class GroupDaoImpl implements GroupDao {
 
 		Randomizer randomizer = new Randomizer();
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < DEFAULT_GROUP_COUNT; i++) {
 			addGroup(randomizer.getRandomGroupName());
 		}
 
-		logger.info("10 groups were generated successfully");
+		logger.info("{} groups were generated successfully", DEFAULT_GROUP_COUNT);
 	}
 
 	@Override

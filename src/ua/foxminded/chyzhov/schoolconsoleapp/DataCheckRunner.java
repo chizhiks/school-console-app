@@ -1,5 +1,7 @@
 package ua.foxminded.chyzhov.schoolconsoleapp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -11,6 +13,8 @@ import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentSe
 
 @Component
 public class DataCheckRunner implements ApplicationRunner {
+
+	private static final Logger logger = LoggerFactory.getLogger(DataCheckRunner.class);
 
 	private final GeneratorService generatorService;
 	private final StudentService studentService;
@@ -28,20 +32,29 @@ public class DataCheckRunner implements ApplicationRunner {
 	}
 
 	private boolean isTablesEmpty() {
-		return studentService.isStudentsTableEmpty() && groupService.isGroupsTableEmpty()
+		boolean isTablesEmpty = studentService.isStudentsTableEmpty() && groupService.isGroupsTableEmpty()
 				&& courseService.isCoursesTableEmpty();
+		logger.info("Checked if all tables are empty: {}", isTablesEmpty);
+		return isTablesEmpty;
 	}
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
+
+		logger.info("Application started, beginning database check...");
+
 		if (isTablesEmpty()) {
-			System.out.println("The database is empty. Starting the generator...");
+			logger.info("The database is empty. Starting the data generator...");
 			generatorService.generateAllData();
+			logger.info("Data generation completed successfully");
 		} else {
-			System.out.println("The database already contains data.");
+			logger.info("Database already contains data. Skipping data generation.");
+
 		}
 
+		logger.info("Starting user input service.");
 		userInputService.start();
+		logger.info("User input service started.");
 	}
 
 }

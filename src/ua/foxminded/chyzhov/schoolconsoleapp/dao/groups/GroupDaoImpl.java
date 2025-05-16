@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +13,8 @@ import ua.foxminded.chyzhov.schoolconsoleapp.Randomizer;
 
 @Repository
 public class GroupDaoImpl implements GroupDao {
+
+	private static final Logger logger = LoggerFactory.getLogger(GroupDaoImpl.class);
 
 	private final JdbcTemplate jdbc;
 
@@ -26,6 +30,8 @@ public class GroupDaoImpl implements GroupDao {
 		for (int i = 0; i < 10; i++) {
 			addGroup(randomizer.getRandomGroupName());
 		}
+
+		logger.info("Groups were generated successfully");
 	}
 
 	@Override
@@ -33,6 +39,8 @@ public class GroupDaoImpl implements GroupDao {
 		String sql = "INSERT INTO school.groups(group_name) values (?)";
 
 		jdbc.update(sql, groupName);
+
+		logger.info("Group added: GroupName: {}", groupName);
 
 	}
 
@@ -53,6 +61,8 @@ public class GroupDaoImpl implements GroupDao {
 
 		}
 
+		logger.info("Received {} groups from the database", rows.size());
+
 		return result;
 
 	}
@@ -66,16 +76,21 @@ public class GroupDaoImpl implements GroupDao {
 				GROUP BY g.group_id, g.group_name HAVING count(student_id) <= ?
 				""";
 
-		return jdbc.query(sql, new Object[] { limit },
+		List<String> result = jdbc.query(sql, new Object[] { limit },
 				(rs, rowNum) -> String.format("GroupID: %-5d Group name: %-8s Students amount: %-5d",
 						rs.getInt("group_id"), rs.getString("group_name"), rs.getInt("student_count")));
+
+		logger.info("Received {} groups with the number of students less than or equal to {}", result.size(), limit);
+		return result;
 	}
 
 	@Override
 	public boolean isGroupsTableEmpty() {
 		String sql = "SELECT COUNT(*) FROM school.groups";
 		Integer count = jdbc.queryForObject(sql, Integer.class);
-		return count == null || count == 0;
+		boolean isEmpty = count == null || count == 0;
+		logger.info("Checked if groups table is empty: {}", isEmpty);
+		return isEmpty;
 	}
 
 }

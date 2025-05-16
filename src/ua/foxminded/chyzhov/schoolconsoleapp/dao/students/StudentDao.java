@@ -2,6 +2,8 @@ package ua.foxminded.chyzhov.schoolconsoleapp.dao.students;
 
 import java.util.List;
 
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
+
 public interface StudentDao {
 
 	void generateStudents();
@@ -20,11 +22,11 @@ public interface StudentDao {
 
 	List<String> getStudentsByGroup(String groupName);
 
-	void deleteStudent(int studentId);
+	void deleteStudent(int studentId) throws DaoException;
 
 	void addStudentToCourse(int studentId, int courseId);
 
-	void removeStudentFromCourse(int studentId, int courseId);
+	void removeStudentFromCourse(int studentId, int courseId) throws DaoException;
 
 	boolean isStudentsTableEmpty();
 }

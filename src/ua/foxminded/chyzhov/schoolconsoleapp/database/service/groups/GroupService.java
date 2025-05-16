@@ -15,10 +15,6 @@ public class GroupService {
 		this.groupDao = groupDao;
 	}
 
-	public void generateGroups() {
-		groupDao.generateGroups();
-	}
-
 	public void addGroup(String groupName) {
 		groupDao.addGroup(groupName);
 	}
@@ -30,4 +26,9 @@ public class GroupService {
 	public List<String> getGroupsWithLimitStudents(int limit) {
 		return groupDao.getGroupsWithLimitStudents(limit);
 	}
+
+	public boolean isGroupsTableEmpty() {
+		return groupDao.isGroupsTableEmpty();
+	}
+
 }

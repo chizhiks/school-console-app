@@ -6,10 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentDao;
 
 @Service
+@Transactional
 public class StudentService {
 
 	private static final Logger logger = LoggerFactory.getLogger(StudentService.class);

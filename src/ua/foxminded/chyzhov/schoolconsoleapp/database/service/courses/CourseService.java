@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDao;
 
 @Service
+@Transactional
 public class CourseService {
 
 	private final CourseDao courseDao;

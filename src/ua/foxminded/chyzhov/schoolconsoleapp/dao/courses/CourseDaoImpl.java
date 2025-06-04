@@ -2,23 +2,22 @@ package ua.foxminded.chyzhov.schoolconsoleapp.dao.courses;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import ua.foxminded.chyzhov.schoolconsoleapp.entity.Course;
 
 @Repository
 public class CourseDaoImpl implements CourseDao {
 
+	@PersistenceContext
+	EntityManager em;
+
 	private static final Logger logger = LoggerFactory.getLogger(CourseDaoImpl.class);
-
-	private final JdbcTemplate jdbc;
-
-	public CourseDaoImpl(JdbcTemplate jdbc) {
-		this.jdbc = jdbc;
-	}
 
 	@Override
 	public void generateCourses() {
@@ -36,8 +35,9 @@ public class CourseDaoImpl implements CourseDao {
 	@Override
 	public void addCourse(String courseName, String courseDescription) {
 
-		jdbc.update("INSERT INTO school.courses(course_name, course_description) VALUES (?, ?)", courseName,
-				courseDescription);
+		Course course = new Course(courseName, courseDescription);
+
+		em.persist(course);
 
 		logger.info("Course added, CourseName: {}, CourseDescription: {}", courseName, courseDescription);
 
@@ -46,16 +46,14 @@ public class CourseDaoImpl implements CourseDao {
 	@Override
 	public List<String> getCourses() {
 
-		String sql = "SELECT * FROM school.courses";
-
-		List<Map<String, Object>> rows = jdbc.queryForList(sql);
+		List<Course> courses = em.createQuery("SELECT c FROM Course c", Course.class).getResultList();
 
 		int maxCourseNameLength = 0;
 		int maxCourseDescLength = 0;
 
-		for (Map<String, Object> row : rows) {
-			String courseName = (String) row.get("course_name");
-			String courseDesc = (String) row.get("course_description");
+		for (Course course : courses) {
+			String courseName = (String) course.getCourseName();
+			String courseDesc = (String) course.getCourseDescription();
 
 			if (courseName.length() > maxCourseNameLength) {
 				maxCourseNameLength = courseName.length();
@@ -74,23 +72,23 @@ public class CourseDaoImpl implements CourseDao {
 
 		result.add("\nList of courses in the database:\n");
 
-		for (Map<String, Object> row : rows) {
+		for (Course course : courses) {
 			String courseInfo = String.format("ID: %-5d Course Name: %-" + maxCourseNameLength
-					+ "s Course Description: %-" + maxCourseDescLength + "s", row.get("course_id"),
-					row.get("course_name"), row.get("course_description"));
+					+ "s Course Description: %-" + maxCourseDescLength + "s", course.getCourseId(),
+					course.getCourseName(), course.getCourseDescription());
 
 			result.add(courseInfo);
 		}
 
-		logger.info("Received {} courses from the database", rows.size());
+		logger.info("Received {} courses from the database", courses.size());
 
 		return result;
 	}
 
 	@Override
 	public boolean isCoursesTableEmpty() {
-		String sql = "SELECT COUNT(*) FROM school.courses";
-		Integer count = jdbc.queryForObject(sql, Integer.class);
+		Integer count = em.createQuery("SELECT COUNT(c) FROM Course c", Integer.class).getSingleResult();
+
 		boolean isEmpty = count == null || count == 0;
 		logger.info("Checked if courses table is empty: {}", isEmpty);
 		return isEmpty;

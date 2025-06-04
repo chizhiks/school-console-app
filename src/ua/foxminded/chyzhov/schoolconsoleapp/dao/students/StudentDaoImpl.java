@@ -2,29 +2,27 @@ package ua.foxminded.chyzhov.schoolconsoleapp.dao.students;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
+import ua.foxminded.chyzhov.schoolconsoleapp.entity.Student;
 
 @Repository
 public class StudentDaoImpl implements StudentDao {
 
+	@PersistenceContext
+	private EntityManager em;
+
 	private static final int DEFAULT_STUDENT_COUNT = 200;
 
 	private static final Logger logger = LoggerFactory.getLogger(StudentDaoImpl.class);
-
-	private final JdbcTemplate jdbc;
-
-	public StudentDaoImpl(JdbcTemplate jdbc) {
-		this.jdbc = jdbc;
-	}
 
 	@Override
 	public void generateStudents() {
@@ -37,8 +35,6 @@ public class StudentDaoImpl implements StudentDao {
 				"Harris", "Martin", "Thompson", "Garcia", "Martinez", "Robinson", "Clark", "Rodriguez", "Lewis", "Lee",
 				"Walker", "Hall" };
 
-		String sql = "INSERT INTO school.students(first_name, last_name) VALUES (?, ?)";
-
 		Random random = new Random();
 
 		for (int i = 0; i < DEFAULT_STUDENT_COUNT; i++) {
@@ -46,7 +42,8 @@ public class StudentDaoImpl implements StudentDao {
 			String firstName = firstNames[random.nextInt(firstNames.length)];
 			String lastName = lastNames[random.nextInt(lastNames.length)];
 
-			jdbc.update(sql, firstName, lastName);
+			Student student = new Student(0, firstName, lastName);
+			em.persist(student);
 		}
 
 		logger.info("{} students were successfully generated", DEFAULT_STUDENT_COUNT);
@@ -55,9 +52,9 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public void addStudent(int groupId, String firstName, String lastName) {
 
-		String sql = "INSERT INTO school.students(group_id, first_name, last_name) values (?, ?, ?)";
+		Student student = new Student(groupId, firstName, lastName);
 
-		jdbc.update(sql, groupId, firstName, lastName);
+		em.persist(student);
 
 		logger.info("Student added, GroupId = {}, FirstName = {}, LastName = {}", groupId, firstName, lastName);
 	}
@@ -66,19 +63,22 @@ public class StudentDaoImpl implements StudentDao {
 	public void assignStudentsToGroups() {
 		Random random = new Random();
 
-		List<Integer> groupIDs = jdbc.queryForList("SELECT group_id FROM school.groups", Integer.class);
+		List<Integer> groupIDs = em.createQuery("SELECT g.groupId FROM Group g", Integer.class).getResultList();
 
-		List<Integer> studentIDs = jdbc.queryForList("SELECT student_id FROM school.students WHERE group_id IS NULL",
-				Integer.class);
+		List<Student> unassignedStudents = em
+				.createQuery("SELECT s FROM Student s WHERE s.groupId IS NULL OR s.groupId = 0", Student.class)
+				.getResultList();
 
 		for (int groupID : groupIDs) {
 			int studentsInGroup = random.nextInt(21) + 10;
 
-			for (int i = 0; i < studentsInGroup && !studentIDs.isEmpty(); i++) {
-				int index = random.nextInt(studentIDs.size());
-				int studentID = studentIDs.remove(index);
+			for (int i = 0; i < studentsInGroup && !unassignedStudents.isEmpty(); i++) {
+				int index = random.nextInt(unassignedStudents.size());
+				Student student = unassignedStudents.remove(index);
 
-				jdbc.update("UPDATE school.students SET group_id = ? WHERE student_id = ?", groupID, studentID);
+				student.setGroupId(groupID);
+
+				em.merge(student);
 			}
 		}
 
@@ -90,11 +90,11 @@ public class StudentDaoImpl implements StudentDao {
 	public void assignStudentsToCourses() {
 		Random random = new Random();
 
-		List<Integer> studentIDs = jdbc.queryForList("SELECT student_id FROM school.students", Integer.class);
+		List<Student> studentsQuery = em.createQuery("SELECT s FROM Student s", Student.class).getResultList();
 
-		List<Integer> courseIDs = jdbc.queryForList("SELECT course_id FROM school.courses", Integer.class);
+		List<Integer> courseIDs = em.createQuery("SELECT c.courseId FROM Course c", Integer.class).getResultList();
 
-		for (int studentID : studentIDs) {
+		for (Student student : studentsQuery) {
 			int numCourses = random.nextInt(3) + 1;
 			List<Integer> selectedCourses = new ArrayList<>(courseIDs);
 
@@ -102,8 +102,11 @@ public class StudentDaoImpl implements StudentDao {
 				int courseIndex = random.nextInt(selectedCourses.size());
 				int courseID = selectedCourses.remove(courseIndex);
 
-				jdbc.update("INSERT INTO school.students_courses(student_id, course_id) VALUES (?, ?)", studentID,
-						courseID);
+				Query insertQuery = em
+						.createNativeQuery("INSERT INTO school.students_courses(student_id, course_id) VALUES (?, ?)");
+				insertQuery.setParameter(1, student.getStudentId());
+				insertQuery.setParameter(2, courseID);
+				insertQuery.executeUpdate();
 			}
 		}
 
@@ -114,14 +117,15 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public List<String> getStudents() {
 
-		List<Map<String, Object>> rows = jdbc.queryForList("SELECT * FROM school.students");
+		List<Student> students = em.createQuery("SELECT s FROM Student s", Student.class).getResultList();
 
 		int maxFirstNameLength = 0;
 		int maxLastNameLength = 0;
 
-		for (Map<String, Object> row : rows) {
-			String firstName = (String) row.get("first_name");
-			String lastName = (String) row.get("last_name");
+		for (Student student : students) {
+
+			String firstName = student.getFirstName();
+			String lastName = student.getLastName();
 
 			if (firstName.length() > maxFirstNameLength) {
 				maxFirstNameLength = firstName.length();
@@ -139,16 +143,16 @@ public class StudentDaoImpl implements StudentDao {
 
 		result.add("\nList of students in the database:\n");
 
-		for (Map<String, Object> row : rows) {
+		for (Student student : students) {
 
 			String studentInfo = String.format(
 					"ID: %-5d | First Name: %-" + maxFirstNameLength + "s | Last Name: %-" + maxLastNameLength + "s",
-					row.get("student_id"), row.get("first_name"), row.get("last_name"));
+					student.getStudentId(), student.getFirstName(), student.getLastName());
 
 			result.add(studentInfo);
 		}
 
-		logger.info("Received {} students from the database", rows.size());
+		logger.info("Received {} students from the database", students.size());
 
 		return result;
 	}
@@ -156,8 +160,18 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public List<String> getStudentsWithCourses() {
 
-		List<String> result = jdbc.query("SELECT * FROM school.students_courses", (rs, rowNum) -> String
-				.format("StudentID: %-5d | CourseID: %-5d", rs.getInt("student_id"), rs.getInt("course_id")));
+		Query query = em.createNativeQuery("SELECT student_id, course_id FROM school.students_courses");
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
+
+		List<String> result = new ArrayList<>();
+
+		for (Object[] row : rows) {
+			String info = String.format("StudentID: %-5d | CourseID: %-5d", ((Number) row[0]).intValue(),
+					((Number) row[1]).intValue());
+			result.add(info);
+		}
 
 		logger.info("Received {} student-course assignments from the database", result.size());
 
@@ -168,22 +182,24 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public List<String> getStudentsByCourse(String courseName) {
 
-		String sql = """
+		Query query = em.createNativeQuery("""
 				SELECT s.student_id, s.first_name, s.last_name
 				FROM school.students s
 				JOIN school.students_courses sc ON s.student_id = sc.student_id
 				JOIN school.courses c ON sc.course_id = c.course_id
 				WHERE c.course_name = ?
-				""";
+				""");
+		query.setParameter(1, courseName);
 
-		List<Map<String, Object>> rows = jdbc.queryForList(sql, courseName);
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
 
 		int maxFirstNameLength = 0;
 		int maxLastNameLength = 0;
 
-		for (Map<String, Object> row : rows) {
-			String firstName = (String) row.get("first_name");
-			String lastName = (String) row.get("last_name");
+		for (Object[] row : rows) {
+			String firstName = (String) row[1];
+			String lastName = (String) row[2];
 
 			if (firstName.length() > maxFirstNameLength) {
 				maxFirstNameLength = firstName.length();
@@ -201,11 +217,11 @@ public class StudentDaoImpl implements StudentDao {
 
 		result.add("\nList of students in the course '" + courseName + "':\n");
 
-		for (Map<String, Object> row : rows) {
+		for (Object[] row : rows) {
 
 			String studentInfo = String.format(
 					"ID: %-5d First Name: %-" + maxFirstNameLength + "s Last Name: %-" + maxLastNameLength + "s",
-					row.get("student_id"), row.get("first_name"), row.get("last_name"));
+					((Number) row[0]).intValue(), row[1], row[2]);
 
 			result.add(studentInfo);
 		}
@@ -218,20 +234,23 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public List<String> getStudentsByGroup(String groupName) {
 
-		String sql = """
+		Query query = em.createNativeQuery("""
 				SELECT * FROM school.students s
 				JOIN school.groups g ON s.group_id = g.group_id
 				WHERE g.group_name = ?
-				""";
+				""");
+		query.setParameter(1, groupName);
 
-		List<Map<String, Object>> rows = jdbc.queryForList(sql, groupName);
+		@SuppressWarnings("unchecked")
+		List<Object[]> rows = query.getResultList();
 
 		int maxFirstNameLength = 0;
 		int maxLastNameLength = 0;
 
-		for (Map<String, Object> row : rows) {
-			String firstName = (String) row.get("first_name");
-			String lastName = (String) row.get("last_name");
+		for (Object[] row : rows) {
+
+			String firstName = (String) row[2];
+			String lastName = (String) row[3];
 
 			if (firstName.length() > maxFirstNameLength) {
 				maxFirstNameLength = firstName.length();
@@ -249,11 +268,11 @@ public class StudentDaoImpl implements StudentDao {
 
 		result.add("\nList of students in the group '" + groupName + "':\n");
 
-		for (Map<String, Object> row : rows) {
+		for (Object[] row : rows) {
 
 			String studentInfo = String.format(
 					"ID: %-5d First Name: %-" + maxFirstNameLength + "s Last Name: %-" + maxLastNameLength + "s",
-					row.get("student_id"), row.get("first_name"), row.get("last_name"));
+					((Number) row[0]).intValue(), row[1], row[2]);
 
 			result.add(studentInfo);
 		}
@@ -267,16 +286,20 @@ public class StudentDaoImpl implements StudentDao {
 	public void deleteStudent(int studentId) throws DaoException {
 
 		try {
-			jdbc.update("DELETE FROM school.students_courses WHERE student_id = ?", studentId);
-			int studentRows = jdbc.update("DELETE FROM school.students WHERE student_id = ?", studentId);
+			Query deleteCoursesQuery = em.createNativeQuery("DELETE FROM school.students_courses WHERE student_id = ?");
+			deleteCoursesQuery.setParameter(1, studentId);
+			deleteCoursesQuery.executeUpdate();
 
-			if (studentRows == 0) {
+			Student student = em.find(Student.class, studentId);
+
+			if (student != null) {
+				em.remove(student);
+				logger.info("Student with ID: {} was successfully deleted", studentId);
+			} else {
 				logger.warn("No student found with ID: {}", studentId);
 			}
 
-			logger.info("Student with ID: {} was successfully deleted", studentId);
-
-		} catch (DataAccessException e) {
+		} catch (Exception e) {
 			logger.error("Failed to delete student with ID: {}", studentId, e);
 			throw new DaoException("Failed to delete student with ID: " + studentId, e);
 		}
@@ -287,9 +310,14 @@ public class StudentDaoImpl implements StudentDao {
 	public void addStudentToCourse(int studentId, int courseId) throws DaoException {
 
 		try {
-			jdbc.update("INSERT INTO school.students_courses VALUES (?, ?)", studentId, courseId);
+			Query insertQuery = em.createNativeQuery("INSERT INTO school.students_courses VALUES (?, ?)");
+			insertQuery.setParameter(1, studentId);
+			insertQuery.setParameter(2, courseId);
+			insertQuery.executeUpdate();
+
 			logger.info("Student with ID: {} was successfully added to course with ID: {}", studentId, courseId);
-		} catch (DataAccessException e) {
+
+		} catch (Exception e) {
 			logger.error("Failed to add student with ID: {} to course with ID: {}", studentId, courseId, e);
 			throw new DaoException("Failed to add student with ID: " + studentId + " to course with ID: " + courseId,
 					e);
@@ -301,8 +329,11 @@ public class StudentDaoImpl implements StudentDao {
 	public void removeStudentFromCourse(int studentId, int courseId) throws DaoException {
 
 		try {
-			int rows = jdbc.update("DELETE FROM school.students_courses WHERE student_id = ? AND course_id = ?",
-					studentId, courseId);
+			Query removeQuery = em
+					.createNativeQuery("DELETE FROM school.students_courses WHERE student_id = ? AND course_id = ?");
+			removeQuery.setParameter(1, studentId);
+			removeQuery.setParameter(2, courseId);
+			int rows = removeQuery.executeUpdate();
 
 			if (rows == 0) {
 				logger.warn("No student found with ID " + studentId + " in course with ID" + courseId);
@@ -310,7 +341,7 @@ public class StudentDaoImpl implements StudentDao {
 
 			logger.info("Student with ID: {} was successfully removed from course with ID: {}", studentId, courseId);
 
-		} catch (DataAccessException e) {
+		} catch (Exception e) {
 			logger.error("Failed to remove student with ID: {} from course with ID: {}", studentId, courseId, e);
 			throw new DaoException(
 					"Failed to remove student with ID: " + studentId + " from course with ID: " + courseId, e);
@@ -320,8 +351,8 @@ public class StudentDaoImpl implements StudentDao {
 
 	@Override
 	public boolean isStudentsTableEmpty() {
-		String sql = "SELECT COUNT(*) FROM school.students";
-		Integer count = jdbc.queryForObject(sql, Integer.class);
+		Integer count = em.createQuery("SELECT COUNT(s) FROM Student s", Integer.class).getSingleResult();
+
 		boolean isEmpty = count == null || count == 0;
 		logger.info("Checked if students table is empty: {}", isEmpty);
 		return isEmpty;

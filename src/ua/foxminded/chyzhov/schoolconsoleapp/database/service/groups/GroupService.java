@@ -8,7 +8,6 @@ import jakarta.transaction.Transactional;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDao;
 
 @Service
-@Transactional
 public class GroupService {
 
 	private final GroupDao groupDao;
@@ -17,6 +16,7 @@ public class GroupService {
 		this.groupDao = groupDao;
 	}
 
+	@Transactional
 	public void addGroup(String groupName) {
 		groupDao.addGroup(groupName);
 	}

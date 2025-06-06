@@ -81,7 +81,6 @@ public class GroupDaoImpl implements GroupDao {
 		Query query = em.createNativeQuery(sql);
 		query.setParameter(1, limit);
 
-		@SuppressWarnings("unchecked")
 		List<Object[]> rows = query.getResultList();
 
 		List<String> result = new ArrayList<>();

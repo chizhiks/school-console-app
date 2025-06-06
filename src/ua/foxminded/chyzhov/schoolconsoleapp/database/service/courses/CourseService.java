@@ -8,7 +8,6 @@ import jakarta.transaction.Transactional;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDao;
 
 @Service
-@Transactional
 public class CourseService {
 
 	private final CourseDao courseDao;
@@ -17,6 +16,7 @@ public class CourseService {
 		this.courseDao = courseDao;
 	}
 
+	@Transactional
 	public void addCourse(String courseName, String courseDescription) {
 		courseDao.addCourse(courseName, courseDescription);
 	}

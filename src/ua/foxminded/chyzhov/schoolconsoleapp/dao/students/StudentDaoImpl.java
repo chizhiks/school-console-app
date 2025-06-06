@@ -1,5 +1,8 @@
 package ua.foxminded.chyzhov.schoolconsoleapp.dao.students;
 
+import ua.foxminded.chyzhov.schoolconsoleapp.entity.Course;
+import ua.foxminded.chyzhov.schoolconsoleapp.entity.Group;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -10,7 +13,6 @@ import org.springframework.stereotype.Repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
 import ua.foxminded.chyzhov.schoolconsoleapp.entity.Student;
 
@@ -63,20 +65,20 @@ public class StudentDaoImpl implements StudentDao {
 	public void assignStudentsToGroups() {
 		Random random = new Random();
 
-		List<Integer> groupIDs = em.createQuery("SELECT g.groupId FROM Group g", Integer.class).getResultList();
+		List<Group> groups = em.createQuery("SELECT g FROM Group g", Group.class).getResultList();
 
 		List<Student> unassignedStudents = em
 				.createQuery("SELECT s FROM Student s WHERE s.groupId IS NULL OR s.groupId = 0", Student.class)
 				.getResultList();
 
-		for (int groupID : groupIDs) {
+		for (Group group : groups) {
 			int studentsInGroup = random.nextInt(21) + 10;
 
 			for (int i = 0; i < studentsInGroup && !unassignedStudents.isEmpty(); i++) {
 				int index = random.nextInt(unassignedStudents.size());
 				Student student = unassignedStudents.remove(index);
 
-				student.setGroupId(groupID);
+				student.setGroup(group);
 
 				em.merge(student);
 			}
@@ -90,24 +92,22 @@ public class StudentDaoImpl implements StudentDao {
 	public void assignStudentsToCourses() {
 		Random random = new Random();
 
-		List<Student> studentsQuery = em.createQuery("SELECT s FROM Student s", Student.class).getResultList();
+		List<Student> students = em.createQuery("SELECT s FROM Student s", Student.class).getResultList();
 
-		List<Integer> courseIDs = em.createQuery("SELECT c.courseId FROM Course c", Integer.class).getResultList();
+		List<Course> courses = em.createQuery("SELECT c FROM Course c", Course.class).getResultList();
 
-		for (Student student : studentsQuery) {
+		for (Student student : students) {
 			int numCourses = random.nextInt(3) + 1;
-			List<Integer> selectedCourses = new ArrayList<>(courseIDs);
+			List<Course> availableCourses = new ArrayList<>(courses);
 
-			for (int i = 0; i < numCourses && !selectedCourses.isEmpty(); i++) {
-				int courseIndex = random.nextInt(selectedCourses.size());
-				int courseID = selectedCourses.remove(courseIndex);
+			for (int i = 0; i < numCourses && !availableCourses.isEmpty(); i++) {
+				int courseIndex = random.nextInt(availableCourses.size());
+				Course course = availableCourses.remove(courseIndex);
 
-				Query insertQuery = em
-						.createNativeQuery("INSERT INTO school.students_courses(student_id, course_id) VALUES (?, ?)");
-				insertQuery.setParameter(1, student.getStudentId());
-				insertQuery.setParameter(2, courseID);
-				insertQuery.executeUpdate();
+				student.addCourse(course);
 			}
+
+			em.merge(student);
 		}
 
 		logger.info("Students were successfully assigned to courses");
@@ -160,17 +160,20 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public List<String> getStudentsWithCourses() {
 
-		Query query = em.createNativeQuery("SELECT student_id, course_id FROM school.students_courses");
-
-		@SuppressWarnings("unchecked")
-		List<Object[]> rows = query.getResultList();
+		List<Student> students = em.createQuery("""
+				SELECT DISTINCT s FROM Student s
+				JOIN FETCH s.courseList c
+				ORDER BY s.studentId, c.courseId
+				""", Student.class).getResultList();
 
 		List<String> result = new ArrayList<>();
 
-		for (Object[] row : rows) {
-			String info = String.format("StudentID: %-5d | CourseID: %-5d", ((Number) row[0]).intValue(),
-					((Number) row[1]).intValue());
-			result.add(info);
+		for (Student student : students) {
+			for (Course course : student.getCourseList()) {
+				String info = String.format("StudentID: %-5d | CourseID: %-5d", student.getStudentId(),
+						course.getCourseId());
+				result.add(info);
+			}
 		}
 
 		logger.info("Received {} student-course assignments from the database", result.size());
@@ -182,24 +185,18 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public List<String> getStudentsByCourse(String courseName) {
 
-		Query query = em.createNativeQuery("""
-				SELECT s.student_id, s.first_name, s.last_name
-				FROM school.students s
-				JOIN school.students_courses sc ON s.student_id = sc.student_id
-				JOIN school.courses c ON sc.course_id = c.course_id
-				WHERE c.course_name = ?
-				""");
-		query.setParameter(1, courseName);
-
-		@SuppressWarnings("unchecked")
-		List<Object[]> rows = query.getResultList();
+		List<Student> students = em.createQuery("""
+				SELECT s FROM Student s
+				JOIN s.courseList c
+				WHERE c.courseName = :courseName
+				""", Student.class).setParameter("courseName", courseName).getResultList();
 
 		int maxFirstNameLength = 0;
 		int maxLastNameLength = 0;
 
-		for (Object[] row : rows) {
-			String firstName = (String) row[1];
-			String lastName = (String) row[2];
+		for (Student student : students) {
+			String firstName = student.getFirstName();
+			String lastName = student.getLastName();
 
 			if (firstName.length() > maxFirstNameLength) {
 				maxFirstNameLength = firstName.length();
@@ -217,16 +214,16 @@ public class StudentDaoImpl implements StudentDao {
 
 		result.add("\nList of students in the course '" + courseName + "':\n");
 
-		for (Object[] row : rows) {
+		for (Student student : students) {
 
 			String studentInfo = String.format(
 					"ID: %-5d First Name: %-" + maxFirstNameLength + "s Last Name: %-" + maxLastNameLength + "s",
-					((Number) row[0]).intValue(), row[1], row[2]);
+					student.getStudentId(), student.getFirstName(), student.getLastName());
 
 			result.add(studentInfo);
 		}
 
-		logger.info("Received {} students in the course '{}' from the database", rows.size(), courseName);
+		logger.info("Received {} students in the course '{}' from the database", students.size(), courseName);
 
 		return result;
 	}
@@ -234,23 +231,19 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public List<String> getStudentsByGroup(String groupName) {
 
-		Query query = em.createNativeQuery("""
-				SELECT * FROM school.students s
-				JOIN school.groups g ON s.group_id = g.group_id
-				WHERE g.group_name = ?
-				""");
-		query.setParameter(1, groupName);
-
-		@SuppressWarnings("unchecked")
-		List<Object[]> rows = query.getResultList();
+		List<Student> students = em.createQuery("""
+				SELECT s FROM Student s
+				JOIN s.group g
+				WHERE g.groupName = :groupName
+				""", Student.class).setParameter("groupName", groupName).getResultList();
 
 		int maxFirstNameLength = 0;
 		int maxLastNameLength = 0;
 
-		for (Object[] row : rows) {
+		for (Student student : students) {
 
-			String firstName = (String) row[2];
-			String lastName = (String) row[3];
+			String firstName = student.getFirstName();
+			String lastName = student.getLastName();
 
 			if (firstName.length() > maxFirstNameLength) {
 				maxFirstNameLength = firstName.length();
@@ -268,16 +261,16 @@ public class StudentDaoImpl implements StudentDao {
 
 		result.add("\nList of students in the group '" + groupName + "':\n");
 
-		for (Object[] row : rows) {
+		for (Student student : students) {
 
 			String studentInfo = String.format(
 					"ID: %-5d First Name: %-" + maxFirstNameLength + "s Last Name: %-" + maxLastNameLength + "s",
-					((Number) row[0]).intValue(), row[1], row[2]);
+					student.getStudentId(), student.getFirstName(), student.getLastName());
 
 			result.add(studentInfo);
 		}
 
-		logger.info("Received {} students in the group '{}' from the database", rows.size(), groupName);
+		logger.info("Received {} students in the group '{}' from the database", students.size(), groupName);
 
 		return result;
 	}
@@ -286,14 +279,12 @@ public class StudentDaoImpl implements StudentDao {
 	public void deleteStudent(int studentId) throws DaoException {
 
 		try {
-			Query deleteCoursesQuery = em.createNativeQuery("DELETE FROM school.students_courses WHERE student_id = ?");
-			deleteCoursesQuery.setParameter(1, studentId);
-			deleteCoursesQuery.executeUpdate();
-
 			Student student = em.find(Student.class, studentId);
 
 			if (student != null) {
+				student.getCourseList().clear();
 				em.remove(student);
+
 				logger.info("Student with ID: {} was successfully deleted", studentId);
 			} else {
 				logger.warn("No student found with ID: {}", studentId);
@@ -310,10 +301,21 @@ public class StudentDaoImpl implements StudentDao {
 	public void addStudentToCourse(int studentId, int courseId) throws DaoException {
 
 		try {
-			Query insertQuery = em.createNativeQuery("INSERT INTO school.students_courses VALUES (?, ?)");
-			insertQuery.setParameter(1, studentId);
-			insertQuery.setParameter(2, courseId);
-			insertQuery.executeUpdate();
+			Student student = em.find(Student.class, studentId);
+			Course course = em.find(Course.class, courseId);
+
+			if (student == null) {
+				throw new DaoException("Student with ID " + studentId + " not found");
+			}
+
+			if (course == null) {
+				throw new DaoException("Course with ID " + courseId + " not found");
+			}
+
+			student.getCourseList().add(course);
+			course.getStudentList().add(student);
+
+			em.merge(student);
 
 			logger.info("Student with ID: {} was successfully added to course with ID: {}", studentId, courseId);
 
@@ -329,15 +331,21 @@ public class StudentDaoImpl implements StudentDao {
 	public void removeStudentFromCourse(int studentId, int courseId) throws DaoException {
 
 		try {
-			Query removeQuery = em
-					.createNativeQuery("DELETE FROM school.students_courses WHERE student_id = ? AND course_id = ?");
-			removeQuery.setParameter(1, studentId);
-			removeQuery.setParameter(2, courseId);
-			int rows = removeQuery.executeUpdate();
+			Student student = em.find(Student.class, studentId);
+			Course course = em.find(Course.class, courseId);
 
-			if (rows == 0) {
-				logger.warn("No student found with ID " + studentId + " in course with ID" + courseId);
+			if (student == null) {
+				throw new DaoException("Student with ID " + studentId + " not found");
 			}
+
+			if (course == null) {
+				throw new DaoException("Course with ID " + courseId + " not found");
+			}
+
+			student.getCourseList().remove(course);
+			course.getStudentList().remove(student);
+
+			em.merge(student);
 
 			logger.info("Student with ID: {} was successfully removed from course with ID: {}", studentId, courseId);
 

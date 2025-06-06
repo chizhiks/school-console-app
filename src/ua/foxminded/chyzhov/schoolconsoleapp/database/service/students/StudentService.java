@@ -11,7 +11,6 @@ import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentDao;
 
 @Service
-@Transactional
 public class StudentService {
 
 	private static final Logger logger = LoggerFactory.getLogger(StudentService.class);
@@ -22,6 +21,7 @@ public class StudentService {
 		this.studentDao = studentDao;
 	}
 
+	@Transactional
 	public void addStudent(int groupId, String firstName, String lastName) {
 		studentDao.addStudent(groupId, firstName, lastName);
 	}
@@ -38,6 +38,7 @@ public class StudentService {
 		return studentDao.getStudentsByCourse(courseName);
 	}
 
+	@Transactional
 	public void deleteStudent(int studentId) throws DaoException {
 		try {
 			studentDao.deleteStudent(studentId);
@@ -47,6 +48,7 @@ public class StudentService {
 		}
 	}
 
+	@Transactional
 	public void addStudentToCourse(int studentId, int courseId) throws DaoException {
 		try {
 			studentDao.addStudentToCourse(studentId, courseId);
@@ -57,6 +59,7 @@ public class StudentService {
 		}
 	}
 
+	@Transactional
 	public void removeStudentFromCourse(int studentId, int courseId) throws DaoException {
 		try {
 			studentDao.removeStudentFromCourse(studentId, courseId);

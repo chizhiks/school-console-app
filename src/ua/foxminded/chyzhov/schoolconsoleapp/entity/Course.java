@@ -1,10 +1,13 @@
 package ua.foxminded.chyzhov.schoolconsoleapp.entity;
 
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -21,6 +24,17 @@ public class Course {
 
 	@Column(name = "course_description")
 	private String courseDescription;
+
+	@ManyToMany(mappedBy = "courseList")
+	private List<Student> studentList;
+
+	public List<Student> getStudentList() {
+		return studentList;
+	}
+
+	public void setStudentList(List<Student> studentList) {
+		this.studentList = studentList;
+	}
 
 	public Course() {
 

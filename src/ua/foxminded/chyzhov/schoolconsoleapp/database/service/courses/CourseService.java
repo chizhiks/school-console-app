@@ -5,28 +5,28 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDao;
 
 @Service
 public class CourseService {
 
-	private final CourseDao courseDao;
+	
+	private final CourseServiceImpl courseServiceImpl;
 
-	public CourseService(CourseDao courseDao) {
-		this.courseDao = courseDao;
+	public CourseService(CourseServiceImpl courseServiceImpl) {
+		this.courseServiceImpl = courseServiceImpl;
 	}
 
 	@Transactional
 	public void addCourse(String courseName, String courseDescription) {
-		courseDao.addCourse(courseName, courseDescription);
+		courseServiceImpl.addCourse(courseName, courseDescription);
 	}
 
 	public List<String> getCourses() {
-		return courseDao.getCourses();
+		return courseServiceImpl.getCourses();
 	}
 
 	public boolean isCoursesTableEmpty() {
-		return courseDao.isCoursesTableEmpty();
+		return courseServiceImpl.isCoursesTableEmpty();
 	}
 
 }

@@ -5,32 +5,31 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDao;
 
 @Service
 public class GroupService {
 
-	private final GroupDao groupDao;
+	private final GroupServiceImpl groupServiceImpl;
 
-	public GroupService(GroupDao groupDao) {
-		this.groupDao = groupDao;
+	public GroupService(GroupServiceImpl groupServiceImpl) {
+		this.groupServiceImpl = groupServiceImpl;
 	}
 
 	@Transactional
 	public void addGroup(String groupName) {
-		groupDao.addGroup(groupName);
+		groupServiceImpl.addGroup(groupName);
 	}
 
 	public List<String> getGroups() {
-		return groupDao.getGroups();
+		return groupServiceImpl.getGroups();
 	}
 
 	public List<String> getGroupsWithLimitStudents(int limit) {
-		return groupDao.getGroupsWithLimitStudents(limit);
+		return groupServiceImpl.getGroupsWithLimitStudents(limit);
 	}
 
 	public boolean isGroupsTableEmpty() {
-		return groupDao.isGroupsTableEmpty();
+		return groupServiceImpl.isGroupsTableEmpty();
 	}
 
 }

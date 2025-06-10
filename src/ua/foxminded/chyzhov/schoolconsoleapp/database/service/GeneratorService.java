@@ -4,23 +4,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDao;
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDao;
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentDao;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseServiceImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupServiceImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentServiceImpl;
 
 @Service
 public class GeneratorService {
 
 	private static final Logger logger = LoggerFactory.getLogger(GeneratorService.class);
 
-	private final StudentDao studentDao;
-	private final GroupDao groupDao;
-	private final CourseDao courseDao;
+	private final StudentServiceImpl studentService;
+	private final GroupServiceImpl groupService;
+	private final CourseServiceImpl courseService;
 
-	public GeneratorService(StudentDao studentDao, GroupDao groupDao, CourseDao courseDao) {
-		this.studentDao = studentDao;
-		this.groupDao = groupDao;
-		this.courseDao = courseDao;
+	public GeneratorService(StudentServiceImpl studentService, GroupServiceImpl groupService,
+			CourseServiceImpl courseService) {
+		this.studentService = studentService;
+		this.groupService = groupService;
+		this.courseService = courseService;
 	}
 
 	public void generateAllData() {
@@ -33,23 +34,23 @@ public class GeneratorService {
 	}
 
 	public void generateGroups() {
-		groupDao.generateGroups();
+		groupService.generateGroups();
 	}
 
 	public void generateCourses() {
-		courseDao.generateCourses();
+		courseService.generateCourses();
 	}
 
 	public void generateStudents() {
-		studentDao.generateStudents();
+		studentService.generateStudents();
 	}
 
 	public void assignStudentsToGroups() {
-		studentDao.assignStudentsToGroups();
+		studentService.assignStudentsToGroups();
 	}
 
 	public void assignStudentsToCourses() {
-		studentDao.assignStudentsToCourses();
+		studentService.assignStudentsToCourses();
 	}
 
 }

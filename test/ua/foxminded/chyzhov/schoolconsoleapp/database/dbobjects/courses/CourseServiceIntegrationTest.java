@@ -13,8 +13,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.jdbc.Sql;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseServiceImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.courses.CourseService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.courses.CourseServiceImpl;
 
 @DataJpaTest(includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = { CourseService.class,
 		CourseServiceImpl.class }))

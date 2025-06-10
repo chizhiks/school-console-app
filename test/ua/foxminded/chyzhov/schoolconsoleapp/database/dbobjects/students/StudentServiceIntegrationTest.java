@@ -13,10 +13,10 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.jdbc.Sql;
 
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupServiceImpl;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentServiceImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.groups.GroupService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.groups.GroupServiceImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.students.StudentService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.students.StudentServiceImpl;
 
 @DataJpaTest(includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = { StudentService.class,
 		StudentServiceImpl.class, GroupService.class, GroupServiceImpl.class }))

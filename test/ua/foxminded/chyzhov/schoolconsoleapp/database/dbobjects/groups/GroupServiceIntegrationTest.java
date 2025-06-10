@@ -5,16 +5,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupServiceImpl;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.jdbc.Sql;
+
+import ua.foxminded.chyzhov.schoolconsoleapp.service.groups.GroupService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.groups.GroupServiceImpl;
 
 @DataJpaTest(includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = { GroupService.class,
 		GroupServiceImpl.class }))

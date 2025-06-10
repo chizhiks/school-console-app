@@ -8,9 +8,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.courses.CourseService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.groups.GroupService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.students.StudentService;
 
 @Service
 public class DatabaseFacade {

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseDao;
 
 @Service
@@ -15,6 +16,7 @@ public class CourseService {
 		this.courseDao = courseDao;
 	}
 
+	@Transactional
 	public void addCourse(String courseName, String courseDescription) {
 		courseDao.addCourse(courseName, courseDescription);
 	}

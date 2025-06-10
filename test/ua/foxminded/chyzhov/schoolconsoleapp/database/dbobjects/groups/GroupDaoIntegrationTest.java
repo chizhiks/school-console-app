@@ -1,0 +1,42 @@
+package ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDao;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDaoImpl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.test.context.jdbc.Sql;
+
+@DataJpaTest(includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {
+		GroupDaoImpl.class }))
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Sql(scripts = { "/sql/clear_tables.sql",
+		"/sql/sample_data.sql" }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+class GroupDaoIntegrationTest {
+
+	@Autowired
+	GroupDao groupDao;
+
+	@Test
+	void getGroups_shouldReturnNonEmptyList_whenDatabaseIsInitialized() {
+
+		List<String> groups = groupDao.getGroups();
+
+		assertNotNull(groups);
+		assertEquals(3, groups.size());
+
+		boolean containsAA11 = groups.stream().anyMatch(s -> s.contains("AA-11"));
+		boolean containsAB12 = groups.stream().anyMatch(s -> s.contains("AB-12"));
+		assertTrue(containsAA11 && containsAB12);
+	}
+
+}

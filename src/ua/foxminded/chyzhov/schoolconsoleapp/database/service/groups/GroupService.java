@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDao;
 
 @Service
@@ -15,6 +16,7 @@ public class GroupService {
 		this.groupDao = groupDao;
 	}
 
+	@Transactional
 	public void addGroup(String groupName) {
 		groupDao.addGroup(groupName);
 	}

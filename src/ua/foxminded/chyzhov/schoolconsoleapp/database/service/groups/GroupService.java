@@ -2,34 +2,14 @@ package ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
+public interface GroupService {
 
-import jakarta.transaction.Transactional;
+	public void addGroup(String groupName);
 
-@Service
-public class GroupService {
+	public List<String> getGroups();
 
-	private final GroupServiceImpl groupServiceImpl;
+	public List<String> getGroupsWithLimitStudents(int limit);
 
-	public GroupService(GroupServiceImpl groupServiceImpl) {
-		this.groupServiceImpl = groupServiceImpl;
-	}
-
-	@Transactional
-	public void addGroup(String groupName) {
-		groupServiceImpl.addGroup(groupName);
-	}
-
-	public List<String> getGroups() {
-		return groupServiceImpl.getGroups();
-	}
-
-	public List<String> getGroupsWithLimitStudents(int limit) {
-		return groupServiceImpl.getGroupsWithLimitStudents(limit);
-	}
-
-	public boolean isGroupsTableEmpty() {
-		return groupServiceImpl.isGroupsTableEmpty();
-	}
+	public boolean isGroupsTableEmpty();
 
 }

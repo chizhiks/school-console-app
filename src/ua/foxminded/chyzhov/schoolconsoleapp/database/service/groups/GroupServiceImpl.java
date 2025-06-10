@@ -6,14 +6,14 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import ua.foxminded.chyzhov.schoolconsoleapp.Randomizer;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupRepository;
 import ua.foxminded.chyzhov.schoolconsoleapp.entity.Group;
 
-@Component
-public class GroupServiceImpl {
+@Service
+public class GroupServiceImpl implements GroupService {
 
 	@Autowired
 	GroupRepository groupRepository;
@@ -33,6 +33,7 @@ public class GroupServiceImpl {
 		logger.info("{} groups were generated successfully", DEFAULT_GROUP_COUNT);
 	}
 
+	@Override
 	public void addGroup(String groupName) {
 
 		Group group = new Group(groupName);
@@ -43,6 +44,7 @@ public class GroupServiceImpl {
 
 	}
 
+	@Override
 	public List<String> getGroups() {
 
 		List<Group> groups = groupRepository.findAll();
@@ -65,6 +67,7 @@ public class GroupServiceImpl {
 
 	}
 
+	@Override
 	public List<String> getGroupsWithLimitStudents(int limit) {
 
 		List<Object[]> rows = groupRepository.findByLimitStudents(limit);
@@ -81,6 +84,7 @@ public class GroupServiceImpl {
 		return result;
 	}
 
+	@Override
 	public boolean isGroupsTableEmpty() {
 		Long count = groupRepository.count();
 

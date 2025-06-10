@@ -7,7 +7,7 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseRepository;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
@@ -17,8 +17,8 @@ import ua.foxminded.chyzhov.schoolconsoleapp.entity.Course;
 import ua.foxminded.chyzhov.schoolconsoleapp.entity.Group;
 import ua.foxminded.chyzhov.schoolconsoleapp.entity.Student;
 
-@Component
-public class StudentServiceImpl {
+@Service
+public class StudentServiceImpl implements StudentService {
 
 	@Autowired
 	StudentRepository studentRepository;
@@ -55,6 +55,7 @@ public class StudentServiceImpl {
 		logger.info("{} students were successfully generated", DEFAULT_STUDENT_COUNT);
 	}
 
+	@Override
 	public void addStudent(int groupId, String firstName, String lastName) {
 
 		Student student = new Student(groupId, firstName, lastName);
@@ -113,6 +114,7 @@ public class StudentServiceImpl {
 
 	}
 
+	@Override
 	public List<String> getStudents() {
 
 		List<Student> students = studentRepository.findAll();
@@ -155,6 +157,7 @@ public class StudentServiceImpl {
 		return result;
 	}
 
+	@Override
 	public List<String> getStudentsWithCourses() {
 
 		List<Student> students = studentRepository.findWithCourses();
@@ -175,6 +178,7 @@ public class StudentServiceImpl {
 
 	}
 
+	@Override
 	public List<String> getStudentsByCourse(String courseName) {
 
 		List<Student> students = studentRepository.findByCourseName(courseName);
@@ -216,6 +220,7 @@ public class StudentServiceImpl {
 		return result;
 	}
 
+	@Override
 	public List<String> getStudentsByGroup(String groupName) {
 
 		List<Student> students = studentRepository.findByGroupName(groupName);
@@ -258,6 +263,7 @@ public class StudentServiceImpl {
 		return result;
 	}
 
+	@Override
 	public void deleteStudent(int studentId) throws DaoException {
 
 		try {
@@ -279,6 +285,7 @@ public class StudentServiceImpl {
 
 	}
 
+	@Override
 	public void addStudentToCourse(int studentId, int courseId) throws DaoException {
 
 		try {
@@ -308,6 +315,7 @@ public class StudentServiceImpl {
 
 	}
 
+	@Override
 	public void removeStudentFromCourse(int studentId, int courseId) throws DaoException {
 
 		try {
@@ -337,6 +345,7 @@ public class StudentServiceImpl {
 
 	}
 
+	@Override
 	public boolean isStudentsTableEmpty() {
 		Long count = studentRepository.count();
 

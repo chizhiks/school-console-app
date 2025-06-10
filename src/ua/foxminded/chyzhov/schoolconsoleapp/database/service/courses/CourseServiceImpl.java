@@ -6,13 +6,13 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseRepository;
 import ua.foxminded.chyzhov.schoolconsoleapp.entity.Course;
 
-@Component
-public class CourseServiceImpl {
+@Service
+public class CourseServiceImpl implements CourseService {
 
 	@Autowired
 	CourseRepository courseRepository;
@@ -31,6 +31,7 @@ public class CourseServiceImpl {
 
 	}
 
+	@Override
 	public void addCourse(String courseName, String courseDescription) {
 
 		Course course = new Course(courseName, courseDescription);
@@ -41,6 +42,7 @@ public class CourseServiceImpl {
 
 	}
 
+	@Override
 	public List<String> getCourses() {
 
 		List<Course> courses = courseRepository.findAll();
@@ -82,6 +84,7 @@ public class CourseServiceImpl {
 		return result;
 	}
 
+	@Override
 	public boolean isCoursesTableEmpty() {
 		Long count = courseRepository.count();
 

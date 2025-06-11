@@ -1,7 +1,4 @@
-package ua.foxminded.chyzhov.schoolconsoleapp.dao.students;
-
-import ua.foxminded.chyzhov.schoolconsoleapp.entity.Course;
-import ua.foxminded.chyzhov.schoolconsoleapp.entity.Group;
+package ua.foxminded.chyzhov.schoolconsoleapp.service.students;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,24 +6,31 @@ import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseRepository;
 import ua.foxminded.chyzhov.schoolconsoleapp.dao.exception.DaoException;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupRepository;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.students.StudentRepository;
+import ua.foxminded.chyzhov.schoolconsoleapp.entity.Course;
+import ua.foxminded.chyzhov.schoolconsoleapp.entity.Group;
 import ua.foxminded.chyzhov.schoolconsoleapp.entity.Student;
 
-@Repository
-public class StudentDaoImpl implements StudentDao {
+@Service
+public class StudentServiceImpl implements StudentService {
 
-	@PersistenceContext
-	private EntityManager em;
+	@Autowired
+	StudentRepository studentRepository;
+	@Autowired
+	GroupRepository groupRepository;
+	@Autowired
+	CourseRepository courseRepository;
 
 	private static final int DEFAULT_STUDENT_COUNT = 200;
 
-	private static final Logger logger = LoggerFactory.getLogger(StudentDaoImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(StudentServiceImpl.class);
 
-	@Override
 	public void generateStudents() {
 
 		String[] firstNames = { "John", "Emma", "Michael", "Olivia", "Daniel", "Sophia", "David", "Ava", "James",
@@ -45,7 +49,7 @@ public class StudentDaoImpl implements StudentDao {
 			String lastName = lastNames[random.nextInt(lastNames.length)];
 
 			Student student = new Student(0, firstName, lastName);
-			em.persist(student);
+			studentRepository.save(student);
 		}
 
 		logger.info("{} students were successfully generated", DEFAULT_STUDENT_COUNT);
@@ -56,20 +60,17 @@ public class StudentDaoImpl implements StudentDao {
 
 		Student student = new Student(groupId, firstName, lastName);
 
-		em.persist(student);
+		studentRepository.save(student);
 
 		logger.info("Student added, GroupId = {}, FirstName = {}, LastName = {}", groupId, firstName, lastName);
 	}
 
-	@Override
 	public void assignStudentsToGroups() {
 		Random random = new Random();
 
-		List<Group> groups = em.createQuery("SELECT g FROM Group g", Group.class).getResultList();
+		List<Group> groups = groupRepository.findAll();
 
-		List<Student> unassignedStudents = em
-				.createQuery("SELECT s FROM Student s WHERE s.groupId IS NULL OR s.groupId = 0", Student.class)
-				.getResultList();
+		List<Student> unassignedStudents = studentRepository.findUnassignedStudents();
 
 		for (Group group : groups) {
 			int studentsInGroup = random.nextInt(21) + 10;
@@ -80,7 +81,7 @@ public class StudentDaoImpl implements StudentDao {
 
 				student.setGroup(group);
 
-				em.merge(student);
+				studentRepository.save(student);
 			}
 		}
 
@@ -88,13 +89,12 @@ public class StudentDaoImpl implements StudentDao {
 
 	}
 
-	@Override
 	public void assignStudentsToCourses() {
 		Random random = new Random();
 
-		List<Student> students = em.createQuery("SELECT s FROM Student s", Student.class).getResultList();
+		List<Student> students = studentRepository.findAll();
 
-		List<Course> courses = em.createQuery("SELECT c FROM Course c", Course.class).getResultList();
+		List<Course> courses = courseRepository.findAll();
 
 		for (Student student : students) {
 			int numCourses = random.nextInt(3) + 1;
@@ -107,7 +107,7 @@ public class StudentDaoImpl implements StudentDao {
 				student.addCourse(course);
 			}
 
-			em.merge(student);
+			studentRepository.save(student);
 		}
 
 		logger.info("Students were successfully assigned to courses");
@@ -117,7 +117,7 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public List<String> getStudents() {
 
-		List<Student> students = em.createQuery("SELECT s FROM Student s", Student.class).getResultList();
+		List<Student> students = studentRepository.findAll();
 
 		int maxFirstNameLength = 0;
 		int maxLastNameLength = 0;
@@ -160,11 +160,7 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public List<String> getStudentsWithCourses() {
 
-		List<Student> students = em.createQuery("""
-				SELECT DISTINCT s FROM Student s
-				JOIN FETCH s.courseList c
-				ORDER BY s.studentId, c.courseId
-				""", Student.class).getResultList();
+		List<Student> students = studentRepository.findWithCourses();
 
 		List<String> result = new ArrayList<>();
 
@@ -185,11 +181,7 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public List<String> getStudentsByCourse(String courseName) {
 
-		List<Student> students = em.createQuery("""
-				SELECT s FROM Student s
-				JOIN s.courseList c
-				WHERE c.courseName = :courseName
-				""", Student.class).setParameter("courseName", courseName).getResultList();
+		List<Student> students = studentRepository.findByCourseName(courseName);
 
 		int maxFirstNameLength = 0;
 		int maxLastNameLength = 0;
@@ -231,11 +223,7 @@ public class StudentDaoImpl implements StudentDao {
 	@Override
 	public List<String> getStudentsByGroup(String groupName) {
 
-		List<Student> students = em.createQuery("""
-				SELECT s FROM Student s
-				JOIN s.group g
-				WHERE g.groupName = :groupName
-				""", Student.class).setParameter("groupName", groupName).getResultList();
+		List<Student> students = studentRepository.findByGroupName(groupName);
 
 		int maxFirstNameLength = 0;
 		int maxLastNameLength = 0;
@@ -279,11 +267,11 @@ public class StudentDaoImpl implements StudentDao {
 	public void deleteStudent(int studentId) throws DaoException {
 
 		try {
-			Student student = em.find(Student.class, studentId);
+			Student student = studentRepository.findById((long) studentId).get();
 
 			if (student != null) {
 				student.getCourseList().clear();
-				em.remove(student);
+				studentRepository.delete(student);
 
 				logger.info("Student with ID: {} was successfully deleted", studentId);
 			} else {
@@ -301,8 +289,8 @@ public class StudentDaoImpl implements StudentDao {
 	public void addStudentToCourse(int studentId, int courseId) throws DaoException {
 
 		try {
-			Student student = em.find(Student.class, studentId);
-			Course course = em.find(Course.class, courseId);
+			Student student = studentRepository.findById((long) studentId).get();
+			Course course = courseRepository.findById((long) courseId).get();
 
 			if (student == null) {
 				throw new DaoException("Student with ID " + studentId + " not found");
@@ -315,7 +303,7 @@ public class StudentDaoImpl implements StudentDao {
 			student.getCourseList().add(course);
 			course.getStudentList().add(student);
 
-			em.merge(student);
+			studentRepository.save(student);
 
 			logger.info("Student with ID: {} was successfully added to course with ID: {}", studentId, courseId);
 
@@ -331,8 +319,8 @@ public class StudentDaoImpl implements StudentDao {
 	public void removeStudentFromCourse(int studentId, int courseId) throws DaoException {
 
 		try {
-			Student student = em.find(Student.class, studentId);
-			Course course = em.find(Course.class, courseId);
+			Student student = studentRepository.findById((long) studentId).get();
+			Course course = courseRepository.findById((long) courseId).get();
 
 			if (student == null) {
 				throw new DaoException("Student with ID " + studentId + " not found");
@@ -345,7 +333,7 @@ public class StudentDaoImpl implements StudentDao {
 			student.getCourseList().remove(course);
 			course.getStudentList().remove(student);
 
-			em.merge(student);
+			studentRepository.save(student);
 
 			logger.info("Student with ID: {} was successfully removed from course with ID: {}", studentId, courseId);
 
@@ -359,7 +347,7 @@ public class StudentDaoImpl implements StudentDao {
 
 	@Override
 	public boolean isStudentsTableEmpty() {
-		Integer count = em.createQuery("SELECT COUNT(s) FROM Student s", Integer.class).getSingleResult();
+		Long count = studentRepository.count();
 
 		boolean isEmpty = count == null || count == 0;
 		logger.info("Checked if students table is empty: {}", isEmpty);

@@ -6,10 +6,10 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.GeneratorService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupService;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.GeneratorService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.courses.CourseService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.groups.GroupService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.students.StudentService;
 
 @Component
 public class DataCheckRunner implements ApplicationRunner {

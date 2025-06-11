@@ -1,4 +1,4 @@
-package ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups;
+package ua.foxminded.chyzhov.schoolconsoleapp.service.groups;
 
 import java.util.List;
 

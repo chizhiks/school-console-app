@@ -1,12 +1,12 @@
-package ua.foxminded.chyzhov.schoolconsoleapp.database.service;
+package ua.foxminded.chyzhov.schoolconsoleapp.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses.CourseServiceImpl;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupServiceImpl;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.students.StudentServiceImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.courses.CourseServiceImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.groups.GroupServiceImpl;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.students.StudentServiceImpl;
 
 @Service
 public class GeneratorService {

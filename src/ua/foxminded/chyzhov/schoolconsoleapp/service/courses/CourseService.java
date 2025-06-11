@@ -1,4 +1,4 @@
-package ua.foxminded.chyzhov.schoolconsoleapp.database.service.courses;
+package ua.foxminded.chyzhov.schoolconsoleapp.service.courses;
 
 import java.util.List;
 

@@ -1,25 +1,24 @@
-package ua.foxminded.chyzhov.schoolconsoleapp.dao.courses;
+package ua.foxminded.chyzhov.schoolconsoleapp.service.courses;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.courses.CourseRepository;
 import ua.foxminded.chyzhov.schoolconsoleapp.entity.Course;
 
-@Repository
-public class CourseDaoImpl implements CourseDao {
+@Service
+public class CourseServiceImpl implements CourseService {
 
-	@PersistenceContext
-	EntityManager em;
+	@Autowired
+	CourseRepository courseRepository;
 
-	private static final Logger logger = LoggerFactory.getLogger(CourseDaoImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(CourseServiceImpl.class);
 
-	@Override
 	public void generateCourses() {
 		String[] courses = { "Mathematics", "Biology", "Chemistry", "Physics", "Computer Science", "History",
 				"Geography", "Literature", "Philosophy", "Art" };
@@ -37,7 +36,7 @@ public class CourseDaoImpl implements CourseDao {
 
 		Course course = new Course(courseName, courseDescription);
 
-		em.persist(course);
+		courseRepository.save(course);
 
 		logger.info("Course added, CourseName: {}, CourseDescription: {}", courseName, courseDescription);
 
@@ -46,7 +45,7 @@ public class CourseDaoImpl implements CourseDao {
 	@Override
 	public List<String> getCourses() {
 
-		List<Course> courses = em.createQuery("SELECT c FROM Course c", Course.class).getResultList();
+		List<Course> courses = courseRepository.findAll();
 
 		int maxCourseNameLength = 0;
 		int maxCourseDescLength = 0;
@@ -87,7 +86,7 @@ public class CourseDaoImpl implements CourseDao {
 
 	@Override
 	public boolean isCoursesTableEmpty() {
-		Integer count = em.createQuery("SELECT COUNT(c) FROM Course c", Integer.class).getSingleResult();
+		Long count = courseRepository.count();
 
 		boolean isEmpty = count == null || count == 0;
 		logger.info("Checked if courses table is empty: {}", isEmpty);

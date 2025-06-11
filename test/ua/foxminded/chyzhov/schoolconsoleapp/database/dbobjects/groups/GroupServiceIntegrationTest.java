@@ -1,42 +1,41 @@
 package ua.foxminded.chyzhov.schoolconsoleapp.database.dbobjects.groups;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-
-import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupDao;
-import ua.foxminded.chyzhov.schoolconsoleapp.database.service.groups.GroupService;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.test.context.jdbc.Sql;
 
-@SpringBootTest(classes = { GroupService.class })
+import ua.foxminded.chyzhov.schoolconsoleapp.service.groups.GroupService;
+import ua.foxminded.chyzhov.schoolconsoleapp.service.groups.GroupServiceImpl;
+
+@DataJpaTest(includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = { GroupService.class,
+		GroupServiceImpl.class }))
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Sql(scripts = { "/sql/clear_tables.sql",
+		"/sql/sample_data.sql" }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class GroupServiceIntegrationTest {
 
-	@MockBean
-	GroupDao groupDao;
-
 	@Autowired
-	private GroupService groupService;
+	GroupService groupService;
 
 	@Test
 	void getGroups_shouldReturnNonEmptyList_whenDatabaseIsInitialized() {
-
-		when(groupDao.getGroups()).thenReturn(List.of("KI-33", "CS-50", "FM-77"));
 
 		List<String> groups = groupService.getGroups();
 
 		assertNotNull(groups);
 		assertEquals(3, groups.size());
-		assertTrue(groups.contains("KI-33"));
 
-		verify(groupDao, times(1)).getGroups();
+		boolean containsAA11 = groups.stream().anyMatch(s -> s.contains("AA-11"));
+		boolean containsAB12 = groups.stream().anyMatch(s -> s.contains("AB-12"));
+		assertTrue(containsAA11 && containsAB12);
 	}
 
 }

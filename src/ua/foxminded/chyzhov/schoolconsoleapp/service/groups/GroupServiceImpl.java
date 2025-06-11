@@ -1,29 +1,27 @@
-package ua.foxminded.chyzhov.schoolconsoleapp.dao.groups;
+package ua.foxminded.chyzhov.schoolconsoleapp.service.groups;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
 import ua.foxminded.chyzhov.schoolconsoleapp.Randomizer;
+import ua.foxminded.chyzhov.schoolconsoleapp.dao.groups.GroupRepository;
 import ua.foxminded.chyzhov.schoolconsoleapp.entity.Group;
 
-@Repository
-public class GroupDaoImpl implements GroupDao {
+@Service
+public class GroupServiceImpl implements GroupService {
 
-	@PersistenceContext
-	EntityManager em;
+	@Autowired
+	GroupRepository groupRepository;
 
 	private static final int DEFAULT_GROUP_COUNT = 10;
 
-	private static final Logger logger = LoggerFactory.getLogger(GroupDaoImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
-	@Override
 	public void generateGroups() {
 
 		Randomizer randomizer = new Randomizer();
@@ -40,7 +38,7 @@ public class GroupDaoImpl implements GroupDao {
 
 		Group group = new Group(groupName);
 
-		em.persist(group);
+		groupRepository.save(group);
 
 		logger.info("Group added, GroupName: {}", groupName);
 
@@ -49,7 +47,7 @@ public class GroupDaoImpl implements GroupDao {
 	@Override
 	public List<String> getGroups() {
 
-		List<Group> groups = em.createQuery("SELECT g FROM Group g", Group.class).getResultList();
+		List<Group> groups = groupRepository.findAll();
 
 		List<String> result = new ArrayList<String>();
 
@@ -72,16 +70,7 @@ public class GroupDaoImpl implements GroupDao {
 	@Override
 	public List<String> getGroupsWithLimitStudents(int limit) {
 
-		String sql = """
-				SELECT g.group_id, g.group_name, count(student_id) AS student_count FROM school.groups g
-				LEFT JOIN school.students s ON g.group_id = s.group_id
-				GROUP BY g.group_id, g.group_name HAVING count(student_id) <= ?
-				""";
-
-		Query query = em.createNativeQuery(sql);
-		query.setParameter(1, limit);
-
-		List<Object[]> rows = query.getResultList();
+		List<Object[]> rows = groupRepository.findByLimitStudents(limit);
 
 		List<String> result = new ArrayList<>();
 
@@ -97,10 +86,10 @@ public class GroupDaoImpl implements GroupDao {
 
 	@Override
 	public boolean isGroupsTableEmpty() {
-		Integer count = em.createQuery("SELECT COUNT(g) FROM Group g", Integer.class).getSingleResult();
+		Long count = groupRepository.count();
+
 		boolean isEmpty = count == null || count == 0;
 		logger.info("Checked if groups table is empty: {}", isEmpty);
 		return isEmpty;
 	}
-
 }

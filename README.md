@@ -22,15 +22,15 @@ The application exposes its functionality through an interactive console menu:
 
 ## Tech Stack
 
-| Category | Technology |
-|---|---|
-| Language | Java 17 |
-| Framework | Spring Boot 3.4.5 |
-| Build Tool | Maven |
-| Database | PostgreSQL |
-| Migrations | Flyway |
-| Data Access | Spring Data JPA (`JpaRepository`) |
-| Testing | JUnit 5, Spring Boot Testcontainers |
+| Category    | Technology                          |
+|--------------|---------------------------------------|
+| Language    | Java 17                             |
+| Framework   | Spring Boot 3.4.5                   |
+| Build Tool  | Maven                               |
+| Database    | PostgreSQL                          |
+| Migrations  | Flyway                              |
+| Data Access | Spring Data JPA (`JpaRepository`)   |
+| Testing     | JUnit 5, Spring Boot Testcontainers |
 
 ## Architecture
 
@@ -77,13 +77,19 @@ src/ua/foxminded/chyzhov/schoolconsoleapp/
 
 ## Running Locally
 
+This is a **console application** — it needs an interactive terminal, so start the database first, then run the app with `docker compose run` (not `up`):
+
 ```bash
 git clone https://github.com/chizhiks/school-console-app.git
 cd school-console-app
-mvn spring-boot:run
+
+docker compose up -d postgres
+docker compose run --rm app
 ```
 
-Requires a local PostgreSQL instance (see `JdbcConfig.java`/`application.properties` for connection details). Tests (`mvn test`) spin up their own PostgreSQL via Testcontainers — Docker must be running.
+The first run builds the app image automatically. The interactive menu appears directly in your terminal — no local Java, Maven, or PostgreSQL installation needed.
+
+Tests (`mvn test`) spin up their own PostgreSQL via Testcontainers — Docker must be running.
 
 ## Author
 
